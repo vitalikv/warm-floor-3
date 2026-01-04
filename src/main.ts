@@ -1,10 +1,12 @@
-import { UiCameraToggle } from './ui/uiCameraToggle';
+import { UiCameraToggle } from './ui/UiCameraToggle';
 import { SceneManager } from './threeApp/scene/SceneManager';
 import { CameraManager } from './threeApp/scene/CameraManager';
 import { RendererManager } from './threeApp/scene/RendererManager';
 import { LightsManager } from './threeApp/scene/LightsManager';
 import { ObjectsManager } from './threeApp/scene/ObjectsManager';
 import { ControlsManager } from './threeApp/scene/ControlsManager';
+
+import { LoaderModel } from './threeApp/model/LoaderModel';
 
 // Инициализация менеджеров
 SceneManager.inst().init();
@@ -22,6 +24,8 @@ const controlsManager = ControlsManager.inst();
 
 console.log(sceneManager.getScene());
 
+LoaderModel.inst().loadJSON();
+
 // Функция переключения камеры
 function switchCamera(isPerspective: boolean) {
   cameraManager.switchCamera(isPerspective);
@@ -37,8 +41,7 @@ window.addEventListener('resize', () => {
 // Инициализация UI кнопки переключения камеры
 const app = document.getElementById('app');
 if (app) {
-  const cameraToggle = new UiCameraToggle(app, switchCamera);
-  cameraToggle.init();
+  UiCameraToggle.inst().init(app, switchCamera);
 }
 
 // Функция анимации

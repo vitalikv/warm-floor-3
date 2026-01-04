@@ -1,17 +1,18 @@
-export class UiCameraToggle {
-  private container: HTMLElement;
+import { ContextSingleton } from '../core/ContextSingleton';
+
+export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
+  private container: HTMLElement | null = null;
   private button: HTMLButtonElement | null = null;
   private isPerspective: boolean = true;
-  private onToggleCallback: (isPerspective: boolean) => void;
+  private onToggleCallback: ((isPerspective: boolean) => void) | null = null;
 
-  constructor(container: HTMLElement, onToggle: (isPerspective: boolean) => void) {
+  public init(container: HTMLElement, onToggle: (isPerspective: boolean) => void) {
     this.container = container;
     this.onToggleCallback = onToggle;
-  }
-
-  public init() {
     const div = this.createDiv();
-    this.container.appendChild(div);
+    if (this.container) {
+      this.container.appendChild(div);
+    }
 
     this.button = div.querySelector('button') as HTMLButtonElement;
     if (!this.button) {
@@ -62,7 +63,9 @@ export class UiCameraToggle {
   private toggle() {
     this.isPerspective = !this.isPerspective;
     this.updateText();
-    this.onToggleCallback(this.isPerspective);
+    if (this.onToggleCallback) {
+      this.onToggleCallback(this.isPerspective);
+    }
   }
 
   private updateText() {

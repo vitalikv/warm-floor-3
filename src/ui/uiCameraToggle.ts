@@ -3,7 +3,7 @@ import { ContextSingleton } from '../core/ContextSingleton';
 export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
   private container: HTMLElement | null = null;
   private button: HTMLButtonElement | null = null;
-  private isPerspective: boolean = true;
+  private isPerspective: boolean = false;
   private onToggleCallback: ((isPerspective: boolean) => void) | null = null;
 
   public init(container: HTMLElement, onToggle: (isPerspective: boolean) => void) {

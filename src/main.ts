@@ -42,6 +42,8 @@ window.addEventListener('resize', () => {
 const app = document.getElementById('app');
 if (app) {
   UiCameraToggle.inst().init(app, switchCamera);
+  // Синхронизируем UI с ортогональной камерой по умолчанию
+  UiCameraToggle.inst().setCameraType(false);
 }
 
 // Функция анимации

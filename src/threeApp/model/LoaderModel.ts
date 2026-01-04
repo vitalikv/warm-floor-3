@@ -1,4 +1,5 @@
 import { ContextSingleton } from '../../core/ContextSingleton';
+import { GridProcessor } from './GridProcessor';
 
 export class LoaderModel extends ContextSingleton<LoaderModel> {
   public async loadJSON() {
@@ -7,5 +8,8 @@ export class LoaderModel extends ContextSingleton<LoaderModel> {
 
     const jsonData = await response.json();
     console.log('Загруженный JSON:', jsonData);
+
+    // Обрабатываем сетки из JSON
+    GridProcessor.inst().processGrids(jsonData);
   }
 }

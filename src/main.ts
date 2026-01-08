@@ -7,6 +7,7 @@ import { ObjectsManager } from './threeApp/scene/ObjectsManager';
 import { ControlsManager } from './threeApp/scene/ControlsManager';
 
 import { LoaderModel } from './threeApp/model/LoaderModel';
+import { HouseLoader } from './threeApp/house/HouseLoader';
 
 // Инициализация менеджеров
 SceneManager.inst().init();
@@ -25,6 +26,8 @@ const controlsManager = ControlsManager.inst();
 console.log(sceneManager.getScene());
 
 LoaderModel.inst().loadJSON();
+
+HouseLoader.inst().loadHouse();
 
 // Функция переключения камеры
 function switchCamera(isPerspective: boolean) {

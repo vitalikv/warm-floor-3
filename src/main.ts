@@ -5,6 +5,7 @@ import { RendererManager } from './threeApp/scene/RendererManager';
 import { LightsManager } from './threeApp/scene/LightsManager';
 import { ObjectsManager } from './threeApp/scene/ObjectsManager';
 import { ControlsManager } from './threeApp/scene/ControlsManager';
+import { MouseManager } from './threeApp/scene/MouseManager';
 
 import { LoaderModel } from './threeApp/model/LoaderModel';
 import { HouseLoader } from './threeApp/house/HouseLoader';
@@ -17,6 +18,13 @@ RendererManager.inst().appendToDOM();
 LightsManager.inst().init();
 ObjectsManager.inst().init();
 ControlsManager.inst().init();
+MouseManager.inst().init();
+MouseManager.inst().setClickCallback((intersects) => {
+  if (intersects.length > 0) {
+    const clickedObject = intersects[0].object;
+    console.log('Кликнули на объект:', clickedObject);
+  }
+});
 
 const sceneManager = SceneManager.inst();
 const cameraManager = CameraManager.inst();

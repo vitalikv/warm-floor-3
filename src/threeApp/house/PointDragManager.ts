@@ -1,63 +1,33 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '../../core/ContextSingleton';
 import { CameraManager } from '../scene/CameraManager';
-import { SceneManager } from '../scene/SceneManager';
 import { RendererManager } from '../scene/RendererManager';
 import { MouseManager } from '../scene/MouseManager';
 import { ClickHandlerManager, ObjectPriority } from '../scene/ClickHandlerManager';
 import { ControlsManager } from '../scene/ControlsManager';
 import { WallBuilder } from './WallBuilder';
 
-/**
- * Менеджер для перемещения точек
- * Для ортогональной камеры: перемещение начинается сразу при зажатии мыши на точке
- * Для перспективной камеры: сначала клик для выбора точки, затем повторное зажатие для перемещения
- */
+// Менеджер для перемещения точек
+// Для ортогональной камеры: перемещение начинается сразу при зажатии мыши на точке
+// Для перспективной камеры: сначала клик для выбора точки, затем повторное зажатие для перемещения
 export class PointDragManager extends ContextSingleton<PointDragManager> {
   private isDragging: boolean = false;
   private selectedPoint: THREE.Mesh | null = null;
   private selectedPointId: number | null = null;
-  private dragPlane: THREE.Plane;
-  private raycaster: THREE.Raycaster;
-  private mouse: THREE.Vector2;
-  private mouseDownPosition: { x: number; y: number } | null = null;
+  private dragPlane!: THREE.Plane;
+
+  // Функции для отписки от событий
+  private unsubscribeHandlers: (() => void)[] = [];
 
   public init(): void {
-    this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2();
     // Плоскость для перемещения (горизонтальная плоскость XZ на уровне y=0)
     this.dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-    this.setupEventListeners();
-    this.registerClickHandler();
   }
 
-  private registerClickHandler(): void {
-    // Регистрируем обработчик кликов для перспективной камеры (для обратной совместимости)
-    // Основная логика выбора точки теперь в onMouseDown
-    ClickHandlerManager.inst().registerHandler('point', ObjectPriority.point, (object, _intersect) => {
-      const pointId = object.userData?.pointId;
-      if (pointId !== undefined && object instanceof THREE.Mesh) {
-        // Для перспективной камеры просто возвращаем true, чтобы показать, что точка обработана
-        if (CameraManager.inst().isPerspectiveMode) {
-          return true;
-        }
-      }
-      return false;
-    });
-  }
+  private onMouseDown(event: MouseEvent, intersects: THREE.Intersection[]): boolean {
+    if (event.button !== 0) return false; // Только левая кнопка мыши
 
-  private setupEventListeners(): void {
-    const domElement = RendererManager.inst().getDomElement();
-
-    domElement.addEventListener('mousedown', (event) => this.onMouseDown(event));
-    domElement.addEventListener('mousemove', (event) => this.onMouseMove(event));
-    domElement.addEventListener('mouseup', (event) => this.onMouseUp(event));
-  }
-
-  private onMouseDown(event: MouseEvent): void {
-    if (event.button !== 0) return; // Только левая кнопка мыши
-
-    const point = this.getPointUnderCursor(event.clientX, event.clientY);
+    const point = this.findPointInIntersects(intersects);
     const isPerspective = CameraManager.inst().isPerspectiveMode;
 
     if (!point) {
@@ -66,7 +36,9 @@ export class PointDragManager extends ContextSingleton<PointDragManager> {
         this.selectedPoint = null;
         this.selectedPointId = null;
       }
-      return;
+      return false;
+    } else {
+      console.log(4444, point);
     }
 
     if (isPerspective) {
@@ -77,12 +49,14 @@ export class PointDragManager extends ContextSingleton<PointDragManager> {
         // Предотвращаем обработку события контролами камеры
         event.stopPropagation();
         event.preventDefault();
+        return true; // Событие обработано
       } else {
         // Первый клик - просто выбираем точку (не начинаем перемещение)
         this.selectedPoint = point;
         this.selectedPointId = point.userData.pointId;
         console.log('Точка выбрана:', this.selectedPointId);
         // Не предотвращаем событие, чтобы контролы камеры могли работать
+        return false;
       }
     } else {
       // Для ортогональной камеры: сразу начинаем перемещение
@@ -90,10 +64,11 @@ export class PointDragManager extends ContextSingleton<PointDragManager> {
       // Предотвращаем обработку события контролами камеры
       event.stopPropagation();
       event.preventDefault();
+      return true; // Событие обработано
     }
   }
 
-  private onMouseMove(event: MouseEvent): void {
+  private onMouseMove(event: MouseEvent, _intersects: THREE.Intersection[]): void {
     if (!this.isDragging || !this.selectedPoint) return;
 
     // Предотвращаем обработку события контролами камеры во время перетаскивания
@@ -107,22 +82,24 @@ export class PointDragManager extends ContextSingleton<PointDragManager> {
     }
   }
 
-  private onMouseUp(event: MouseEvent): void {
-    if (event.button !== 0) return;
+  private onMouseUp(event: MouseEvent, _intersects: THREE.Intersection[]): boolean {
+    if (event.button !== 0) return false;
 
     if (this.isDragging) {
       // Предотвращаем обработку события контролами камеры
       event.stopPropagation();
       event.preventDefault();
       this.stopDragging();
+      return true; // Событие обработано
     }
+
+    return false;
   }
 
-  private startDragging(point: THREE.Mesh, mouseX: number, mouseY: number): void {
+  private startDragging(point: THREE.Mesh, _mouseX: number, _mouseY: number): void {
     this.isDragging = true;
     this.selectedPoint = point;
     this.selectedPointId = point.userData.pointId;
-    this.mouseDownPosition = { x: mouseX, y: mouseY };
 
     // Обновляем плоскость перемещения на уровень текущей точки
     const pointY = point.position.y;
@@ -155,49 +132,38 @@ export class PointDragManager extends ContextSingleton<PointDragManager> {
     }
   }
 
-  private getPointUnderCursor(mouseX: number, mouseY: number): THREE.Mesh | null {
-    const domElement = RendererManager.inst().getDomElement();
-    const rect = domElement.getBoundingClientRect();
-
-    // Нормализация координат мыши от -1 до 1
-    this.mouse.x = ((mouseX - rect.left) / rect.width) * 2 - 1;
-    this.mouse.y = -((mouseY - rect.top) / rect.height) * 2 + 1;
-
-    // Обновление рейкастера
-    const camera = CameraManager.inst().getCurrentCamera();
-    this.raycaster.setFromCamera(this.mouse, camera);
-
-    // Поиск пересечений
-    const scene = SceneManager.inst().getScene();
-    const intersects = this.raycaster.intersectObjects(scene.children, true);
-
-    // Ищем первую точку в пересечениях
+  // Находим точку в переданных intersects
+  private findPointInIntersects(intersects: THREE.Intersection[]): THREE.Mesh | null {
     for (const intersect of intersects) {
       if (intersect.object.userData?.type === 'point' && intersect.object instanceof THREE.Mesh) {
         return intersect.object as THREE.Mesh;
       }
     }
-
     return null;
   }
 
   private getPositionOnPlane(mouseX: number, mouseY: number): THREE.Vector3 | null {
     if (!this.selectedPoint) return null;
 
+    // Используем raycaster из MouseManager для консистентности
+    const raycaster = MouseManager.inst().getRaycaster();
+    const mouse = MouseManager.inst().getMouseVector();
+    const camera = CameraManager.inst().getCurrentCamera();
+
+    // Обновляем raycaster с текущими координатами мыши
+    // (нормализация координат уже выполнена в MouseManager)
+    // Но здесь нам нужно использовать актуальные координаты события
     const domElement = RendererManager.inst().getDomElement();
     const rect = domElement.getBoundingClientRect();
 
-    // Нормализация координат мыши
-    this.mouse.x = ((mouseX - rect.left) / rect.width) * 2 - 1;
-    this.mouse.y = -((mouseY - rect.top) / rect.height) * 2 + 1;
+    mouse.x = ((mouseX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((mouseY - rect.top) / rect.height) * 2 + 1;
 
-    // Обновление рейкастера
-    const camera = CameraManager.inst().getCurrentCamera();
-    this.raycaster.setFromCamera(this.mouse, camera);
+    raycaster.setFromCamera(mouse, camera);
 
     // Находим пересечение луча с плоскостью
     const intersectionPoint = new THREE.Vector3();
-    const ray = this.raycaster.ray;
+    const ray = raycaster.ray;
 
     if (ray.intersectPlane(this.dragPlane, intersectionPoint)) {
       return intersectionPoint;

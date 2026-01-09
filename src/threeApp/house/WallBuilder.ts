@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '../../core/ContextSingleton';
 import { ClickHandlerManager, ObjectPriority } from '../scene/ClickHandlerManager';
+import { PointsManager } from './points/PointsManager';
 
 interface Point {
   id: number;
@@ -33,8 +34,10 @@ export class WallBuilder extends ContextSingleton<WallBuilder> {
 
     points.forEach((point) => {
       this.pointsMap.set(point.id, point);
-      const pointMesh = this.createPointVisualization(point, scene);
-      this.pointMeshesMap.set(point.id, pointMesh);
+      const pointMesh = PointsManager.inst().createPoint({ pos: new THREE.Vector3(point.pos.x, point.pos.y, point.pos.z), id: point.id });
+      if (pointMesh) {
+        this.pointMeshesMap.set(point.id, pointMesh);
+      }
     });
 
     walls.forEach((wall) => {
@@ -209,18 +212,6 @@ export class WallBuilder extends ContextSingleton<WallBuilder> {
     geometry.setIndex(indices);
 
     return geometry;
-  }
-
-  private createPointVisualization(point: Point, scene: THREE.Scene): THREE.Mesh {
-    const geometry = new THREE.SphereGeometry(0.1, 16, 16);
-    const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-    const sphere = new THREE.Mesh(geometry, material);
-
-    sphere.position.set(point.pos.x, point.pos.y, point.pos.z);
-    sphere.userData = { pointId: point.id, type: 'point' };
-
-    scene.add(sphere);
-    return sphere;
   }
 
   /**

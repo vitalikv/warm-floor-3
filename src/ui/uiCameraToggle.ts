@@ -1,4 +1,6 @@
-import { ContextSingleton } from '../core/ContextSingleton';
+import { ContextSingleton } from '@/core/ContextSingleton';
+import { CameraManager } from '@/threeApp/scene/CameraManager';
+import { ControlsManager } from '@/threeApp/scene/ControlsManager';
 
 export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
   private container: HTMLElement | null = null;
@@ -6,19 +8,13 @@ export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
   private isPerspective: boolean = false;
   private onToggleCallback: ((isPerspective: boolean) => void) | null = null;
 
-  public init(container: HTMLElement, onToggle: (isPerspective: boolean) => void) {
+  public init(container: HTMLElement) {
     this.container = container;
-    this.onToggleCallback = onToggle;
+    this.onToggleCallback = this.switchCameraType;
     const div = this.createDiv();
-    if (this.container) {
-      this.container.appendChild(div);
-    }
+    this.container.appendChild(div);
 
     this.button = div.querySelector('button') as HTMLButtonElement;
-    if (!this.button) {
-      console.error('Button not found in uiCameraToggle');
-      return;
-    }
     this.button.addEventListener('click', () => this.toggle());
 
     this.updateText();
@@ -77,5 +73,10 @@ export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
   public setCameraType(isPerspective: boolean) {
     this.isPerspective = isPerspective;
     this.updateText();
+  }
+
+  public switchCameraType(isPerspective: boolean) {
+    CameraManager.inst().switchCamera(isPerspective);
+    ControlsManager.inst().switchControls(isPerspective);
   }
 }

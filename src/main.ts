@@ -1,34 +1,23 @@
-import { UiCameraToggle } from './ui/UiCameraToggle';
-import { SceneManager } from './threeApp/scene/SceneManager';
-import { CameraManager } from './threeApp/scene/CameraManager';
-import { RendererManager } from './threeApp/scene/RendererManager';
-import { LightsManager } from './threeApp/scene/LightsManager';
-import { ObjectsManager } from './threeApp/scene/ObjectsManager';
-import { ControlsManager } from './threeApp/scene/ControlsManager';
-import { MouseManager } from './threeApp/scene/MouseManager';
-import { ClickHandlerManager } from './threeApp/scene/ClickHandlerManager';
+import { UiMain } from '@/ui/UiMain';
+import { SceneManager } from '@//threeApp/scene/SceneManager';
+import { CameraManager } from '@/threeApp/scene/CameraManager';
+import { RendererManager } from '@/threeApp/scene/RendererManager';
+import { ControlsManager } from '@/threeApp/scene/ControlsManager';
 
-import { LoaderModel } from './threeApp/model/LoaderModel';
-import { HouseLoader } from './threeApp/house/HouseLoader';
-import { PointDragManager } from './threeApp/house/PointDragManager';
+import { LoaderModel } from '@/threeApp/model/LoaderModel';
+import { HouseLoader } from '@/threeApp/house/HouseLoader';
+import { PointDragManager } from '@/threeApp/house/PointDragManager';
 
-// Инициализация менеджеров
-SceneManager.inst().init();
-CameraManager.inst().init();
-RendererManager.inst().init();
-RendererManager.inst().appendToDOM();
-LightsManager.inst().init();
-ObjectsManager.inst().init();
-ControlsManager.inst().init();
-MouseManager.inst().init();
-ClickHandlerManager.inst();
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const container = document.body.querySelector('#container') as HTMLDivElement;
+SceneManager.inst().init({ canvas, rect: canvas.getBoundingClientRect() });
+
+initResizeObserver(canvas);
 
 const sceneManager = SceneManager.inst();
 const cameraManager = CameraManager.inst();
 const rendererManager = RendererManager.inst();
 const controlsManager = ControlsManager.inst();
-
-console.log(sceneManager.getScene());
 
 LoaderModel.inst().loadJSON();
 
@@ -39,25 +28,16 @@ HouseLoader.inst()
     PointDragManager.inst().init();
   });
 
-// Функция переключения камеры
-function switchCamera(isPerspective: boolean) {
-  cameraManager.switchCamera(isPerspective);
-  controlsManager.switchControls(isPerspective);
+function initResizeObserver(canvas: HTMLCanvasElement) {
+  const resizeHandler = () => {
+    const rect = canvas.getBoundingClientRect();
+    SceneManager.inst().handleResize({ width: rect.width, height: rect.height, left: rect.left, top: rect.top });
+  };
+  const resizeObserver = new ResizeObserver(resizeHandler);
+  resizeObserver.observe(canvas);
 }
 
-// Обработка изменения размера окна
-window.addEventListener('resize', () => {
-  cameraManager.resize();
-  rendererManager.updateSize();
-});
-
-// Инициализация UI кнопки переключения камеры
-const app = document.getElementById('app');
-if (app) {
-  UiCameraToggle.inst().init(app, switchCamera);
-  // Синхронизируем UI с ортогональной камерой по умолчанию
-  UiCameraToggle.inst().setCameraType(false);
-}
+UiMain.inst().init({ container });
 
 // Функция анимации
 function animate() {

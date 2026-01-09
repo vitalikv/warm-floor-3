@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { ContextSingleton } from '../../core/ContextSingleton';
-import { ClickHandlerManager, ObjectPriority } from '../scene/ClickHandlerManager';
-import { PointsManager } from './points/PointsManager';
+import { ContextSingleton } from '@/core/ContextSingleton';
+import { ClickHandlerManager, ObjectPriority } from '@/threeApp/scene/ClickHandlerManager';
+import { PointsManager } from '@/threeApp/house/points/PointsManager';
 
 interface Point {
   id: number;

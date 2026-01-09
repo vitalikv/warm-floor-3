@@ -6,9 +6,11 @@ import { LightsManager } from './threeApp/scene/LightsManager';
 import { ObjectsManager } from './threeApp/scene/ObjectsManager';
 import { ControlsManager } from './threeApp/scene/ControlsManager';
 import { MouseManager } from './threeApp/scene/MouseManager';
+import { ClickHandlerManager } from './threeApp/scene/ClickHandlerManager';
 
 import { LoaderModel } from './threeApp/model/LoaderModel';
 import { HouseLoader } from './threeApp/house/HouseLoader';
+import { PointDragManager } from './threeApp/house/PointDragManager';
 
 // Инициализация менеджеров
 SceneManager.inst().init();
@@ -19,12 +21,7 @@ LightsManager.inst().init();
 ObjectsManager.inst().init();
 ControlsManager.inst().init();
 MouseManager.inst().init();
-MouseManager.inst().setClickCallback((intersects) => {
-  if (intersects.length > 0) {
-    const clickedObject = intersects[0].object;
-    console.log('Кликнули на объект:', clickedObject);
-  }
-});
+ClickHandlerManager.inst();
 
 const sceneManager = SceneManager.inst();
 const cameraManager = CameraManager.inst();
@@ -35,7 +32,12 @@ console.log(sceneManager.getScene());
 
 LoaderModel.inst().loadJSON();
 
-HouseLoader.inst().loadHouse();
+HouseLoader.inst()
+  .loadHouse()
+  .then(() => {
+    // Инициализируем PointDragManager после загрузки дома
+    PointDragManager.inst().init();
+  });
 
 // Функция переключения камеры
 function switchCamera(isPerspective: boolean) {

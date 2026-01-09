@@ -5,7 +5,7 @@ import { ContextSingleton } from '../../core/ContextSingleton';
  * Менеджер рендерера
  */
 export class RendererManager extends ContextSingleton<RendererManager> {
-  public renderer: THREE.WebGLRenderer;
+  public renderer!: THREE.WebGLRenderer;
 
   public init(): void {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -34,4 +34,3 @@ export class RendererManager extends ContextSingleton<RendererManager> {
     return this.renderer.domElement;
   }
 }
-

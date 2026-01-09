@@ -3,6 +3,7 @@ import { ContextSingleton } from '../../core/ContextSingleton';
 import { SceneManager } from './SceneManager';
 import { CameraManager } from './CameraManager';
 import { RendererManager } from './RendererManager';
+import { ClickHandlerManager } from './ClickHandlerManager';
 
 // Менеджер мыши для определения кликов на объекты
 export class MouseManager extends ContextSingleton<MouseManager> {
@@ -40,7 +41,11 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     const scene = SceneManager.inst().getScene();
     const intersects = this.raycaster.intersectObjects(scene.children, true);
 
-    if (this.clickCallback) {
+    // Обработка через ClickHandlerManager
+    const handled = ClickHandlerManager.inst().handleClick(intersects);
+
+    // Если клик не обработан через систему приоритетов, вызываем старый callback (для обратной совместимости)
+    if (!handled && this.clickCallback) {
       this.clickCallback(intersects);
     }
   }

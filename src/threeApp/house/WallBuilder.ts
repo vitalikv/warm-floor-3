@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '../../core/ContextSingleton';
+import { ClickHandlerManager, ObjectPriority } from '../scene/ClickHandlerManager';
 
 interface Point {
   id: number;
@@ -18,20 +19,55 @@ interface Wall {
 
 export class WallBuilder extends ContextSingleton<WallBuilder> {
   private pointsMap: Map<number, Point> = new Map();
+  private wallsMap: Map<number, Wall> = new Map();
+  private wallMeshesMap: Map<number, THREE.Mesh> = new Map();
+  private pointMeshesMap: Map<number, THREE.Mesh> = new Map();
+  private scene!: THREE.Scene;
 
   public buildWalls(points: Point[], walls: Wall[], scene: THREE.Scene): void {
+    this.scene = scene;
     this.pointsMap.clear();
+    this.wallsMap.clear();
+    this.wallMeshesMap.clear();
+    this.pointMeshesMap.clear();
 
     points.forEach((point) => {
       this.pointsMap.set(point.id, point);
-      this.createPointVisualization(point, scene);
+      const pointMesh = this.createPointVisualization(point, scene);
+      this.pointMeshesMap.set(point.id, pointMesh);
     });
 
     walls.forEach((wall) => {
+      this.wallsMap.set(wall.id, wall);
       const wallMesh = this.createWall(wall);
       if (wallMesh) {
         scene.add(wallMesh);
+        this.wallMeshesMap.set(wall.id, wallMesh);
       }
+    });
+
+    this.registerClickHandlers();
+  }
+
+  private registerClickHandlers(): void {
+    ClickHandlerManager.inst().registerHandler('wall', ObjectPriority.wall, (object, _intersect) => {
+      const wallId = object.userData?.wallId;
+      if (wallId !== undefined) {
+        console.log('Кликнули на стену:', wallId);
+        // Здесь можно добавить логику обработки клика на стену
+        return true;
+      }
+      return false;
+    });
+
+    ClickHandlerManager.inst().registerHandler('point', ObjectPriority.point, (object, _intersect) => {
+      const pointId = object.userData?.pointId;
+      if (pointId !== undefined) {
+        console.log('Кликнули на точку:', pointId);
+        // Здесь можно добавить логику обработки клика на точку
+        return true;
+      }
+      return false;
     });
   }
 
@@ -47,7 +83,10 @@ export class WallBuilder extends ContextSingleton<WallBuilder> {
     return new THREE.Vector3(x, 0, z).normalize();
   }
 
-  private createWall(wall: Wall): THREE.Mesh | null {
+  /**
+   * Создаёт геометрию для стены на основе данных стены
+   */
+  private createWallGeometry(wall: Wall): THREE.BufferGeometry | null {
     const pointIds = wall.p.id;
 
     if (pointIds.length < 2) {
@@ -81,7 +120,15 @@ export class WallBuilder extends ContextSingleton<WallBuilder> {
 
     const contour = [p1.clone().add(offsetL), midPointL, p2.clone().add(offsetL), p2.clone().add(offsetR), midPointR, p1.clone().add(offsetR)];
 
-    const geometry = this.createExtrudedGeometry(contour, height);
+    return this.createExtrudedGeometry(contour, height);
+  }
+
+  private createWall(wall: Wall): THREE.Mesh | null {
+    const geometry = this.createWallGeometry(wall);
+    if (!geometry) {
+      return null;
+    }
+
     const material = this.createMaterial(wall.material);
     const mesh = new THREE.Mesh(geometry, material);
 
@@ -164,7 +211,7 @@ export class WallBuilder extends ContextSingleton<WallBuilder> {
     return geometry;
   }
 
-  private createPointVisualization(point: Point, scene: THREE.Scene): void {
+  private createPointVisualization(point: Point, scene: THREE.Scene): THREE.Mesh {
     const geometry = new THREE.SphereGeometry(0.1, 16, 16);
     const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
     const sphere = new THREE.Mesh(geometry, material);
@@ -173,6 +220,74 @@ export class WallBuilder extends ContextSingleton<WallBuilder> {
     sphere.userData = { pointId: point.id, type: 'point' };
 
     scene.add(sphere);
+    return sphere;
+  }
+
+  /**
+   * Обновляет позицию точки и перестраивает связанные стены
+   */
+  public updatePointPosition(pointId: number, newPosition: THREE.Vector3): void {
+    const point = this.pointsMap.get(pointId);
+    if (!point) {
+      console.warn(`Точка ${pointId} не найдена`);
+      return;
+    }
+
+    // Обновляем данные точки
+    point.pos.x = newPosition.x;
+    point.pos.y = newPosition.y;
+    point.pos.z = newPosition.z;
+
+    // Обновляем визуализацию точки
+    const pointMesh = this.pointMeshesMap.get(pointId);
+    if (pointMesh) {
+      pointMesh.position.copy(newPosition);
+    }
+
+    // Находим все стены, связанные с этой точкой, и перестраиваем их
+    const wallsToRebuild: number[] = [];
+    for (const [wallId, wall] of this.wallsMap.entries()) {
+      if (wall.p.id.includes(pointId)) {
+        wallsToRebuild.push(wallId);
+      }
+    }
+
+    // Перестраиваем стены
+    wallsToRebuild.forEach((wallId) => {
+      this.rebuildWall(wallId);
+    });
+  }
+
+  /**
+   * Перестраивает стену по её ID
+   * Оптимизированная версия: обновляет только геометрию существующего меша
+   */
+  private rebuildWall(wallId: number): void {
+    const wall = this.wallsMap.get(wallId);
+    if (!wall) {
+      console.warn(`Стена ${wallId} не найдена`);
+      return;
+    }
+
+    const existingMesh = this.wallMeshesMap.get(wallId);
+
+    if (existingMesh) {
+      // Меш существует - обновляем только геометрию
+      const newGeometry = this.createWallGeometry(wall);
+      if (newGeometry) {
+        // Освобождаем старую геометрию
+        existingMesh.geometry.dispose();
+        // Заменяем геометрию
+        existingMesh.geometry = newGeometry;
+      }
+    } else {
+      // Меш не существует (первое создание) - создаём новый меш
+      const newWallMesh = this.createWall(wall);
+      if (newWallMesh) {
+        this.scene.add(newWallMesh);
+        this.wallMeshesMap.set(wallId, newWallMesh);
+      }
+    }
   }
 
   private createMaterial(materials: Array<{ index: number; color: number; img: string }>): THREE.Material {

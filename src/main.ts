@@ -6,7 +6,6 @@ import { ControlsManager } from '@/threeApp/scene/ControlsManager';
 
 import { LoaderModel } from '@/threeApp/model/LoaderModel';
 import { HouseLoader } from '@/threeApp/house/HouseLoader';
-import { PointDragManager } from '@/threeApp/house/PointDragManager';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const container = document.body.querySelector('#container') as HTMLDivElement;
@@ -21,12 +20,7 @@ const controlsManager = ControlsManager.inst();
 
 LoaderModel.inst().loadJSON();
 
-HouseLoader.inst()
-  .loadHouse()
-  .then(() => {
-    // Инициализируем PointDragManager после загрузки дома
-    PointDragManager.inst().init();
-  });
+HouseLoader.inst().loadHouse();
 
 function initResizeObserver(canvas: HTMLCanvasElement) {
   const resizeHandler = () => {
@@ -46,4 +40,4 @@ function animate() {
   rendererManager.getRenderer().render(sceneManager.getScene(), cameraManager.getCurrentCamera());
 }
 
-animate();
+//animate();

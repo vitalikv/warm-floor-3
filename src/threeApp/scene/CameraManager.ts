@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '../../core/ContextSingleton';
+import { ControlsManager } from './ControlsManager';
 
 /**
  * Менеджер камер
@@ -20,6 +21,11 @@ export class CameraManager extends ContextSingleton<CameraManager> {
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(5, 5, 5);
     camera.lookAt(0, 0, 0);
+    camera.userData.state = {
+      position: camera.position.clone(),
+      rotation: camera.rotation.clone(),
+      target: new THREE.Vector3(0, 0, 0),
+    };
     return camera;
   }
 
@@ -36,6 +42,11 @@ export class CameraManager extends ContextSingleton<CameraManager> {
     );
     camera.position.set(0, 10, 0);
     camera.lookAt(0, 0, 0);
+    camera.userData.state = {
+      position: camera.position.clone(),
+      rotation: camera.rotation.clone(),
+      target: new THREE.Vector3(0, 0, 0),
+    };
     return camera;
   }
 
@@ -58,13 +69,15 @@ export class CameraManager extends ContextSingleton<CameraManager> {
 
   public switchCamera(isPerspective: boolean): void {
     this.isPerspectiveMode = isPerspective;
+    console.log(3333, isPerspective);
+    // if (isPerspective) {
+    //   this.currentCamera = this.perspectiveCamera;
+    // } else {
+    //   this.currentCamera = this.orthographicCamera;
+    //   this.updateOrthographicCameraSize();
+    // }
 
-    if (isPerspective) {
-      this.currentCamera = this.perspectiveCamera;
-    } else {
-      this.currentCamera = this.orthographicCamera;
-      this.updateOrthographicCameraSize();
-    }
+    ControlsManager.inst().switchControls(isPerspective);
   }
 
   public getCurrentCamera(): THREE.PerspectiveCamera | THREE.OrthographicCamera {

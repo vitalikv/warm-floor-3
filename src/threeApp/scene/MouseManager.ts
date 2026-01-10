@@ -1,11 +1,10 @@
 import * as THREE from 'three';
-import { ContextSingleton } from '../../core/ContextSingleton';
-import { SceneManager } from './SceneManager';
-import { CameraManager } from './CameraManager';
-import { RendererManager } from './RendererManager';
-import { ClickHandlerManager } from './ClickHandlerManager';
-import { PointMove } from '../house/points/PointMove';
-import { ControlsManager } from './ControlsManager';
+import { ContextSingleton } from '@/core/ContextSingleton';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
+import { CameraManager } from '@/threeApp/scene/CameraManager';
+import { RendererManager } from '@/threeApp/scene/RendererManager';
+import { PointMove } from '@/threeApp/house/points/PointMove';
+import { ControlsManager } from '@/threeApp/scene/ControlsManager';
 
 // Типы колбэков для разных событий мыши
 // Возвращают true, если событие обработано и не нужно продолжать цепочку
@@ -26,8 +25,6 @@ export class MouseManager extends ContextSingleton<MouseManager> {
 
   // Колбэки для разных событий (с приоритетами)
   private mouseDownHandlers: MouseHandler<MouseEventCallback>[] = [];
-  private mouseMoveHandlers: MouseHandler<MouseMoveCallback>[] = [];
-  private mouseUpHandlers: MouseHandler<MouseEventCallback>[] = [];
 
   public init(): void {
     this.raycaster = new THREE.Raycaster();
@@ -62,14 +59,12 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     if (point) {
       PointMove.inst().pointerDown({ obj: point });
       // Отключаем контролы камеры во время перетаскивания
-      const controls = ControlsManager.inst().getCurrentControls();
+      const controls = ControlsManager.inst().getControls();
       if ('enabled' in controls) {
         (controls as any).enabled = false;
       }
 
       this.actObj = point;
-
-      return point;
     }
   };
 
@@ -78,7 +73,11 @@ export class MouseManager extends ContextSingleton<MouseManager> {
 
     if (this.actObj) {
       PointMove.inst().pointerMove();
-      return;
+    }
+
+    const controls = ControlsManager.inst().getControls();
+    if (!controls.enabled) {
+      RendererManager.inst().render();
     }
   };
 
@@ -89,12 +88,11 @@ export class MouseManager extends ContextSingleton<MouseManager> {
       PointMove.inst().pointerUp();
 
       // Включаем контролы камеры обратно
-      const controls = ControlsManager.inst().getCurrentControls();
+      const controls = ControlsManager.inst().getControls();
       if ('enabled' in controls) {
         (controls as any).enabled = true;
       }
       this.actObj = null;
-      return;
     }
   };
 

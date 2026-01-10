@@ -6,7 +6,6 @@ import { LightsManager } from '@/threeApp/scene/LightsManager';
 import { ObjectsManager } from '@/threeApp/scene/ObjectsManager';
 import { ControlsManager } from '@/threeApp/scene/ControlsManager';
 import { MouseManager } from '@/threeApp/scene/MouseManager';
-import { ClickHandlerManager } from '@/threeApp/scene/ClickHandlerManager';
 
 export class SceneManager extends ContextSingleton<SceneManager> {
   private canvas!: HTMLCanvasElement | OffscreenCanvas;
@@ -23,14 +22,15 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     ObjectsManager.inst().init();
     ControlsManager.inst().init();
     MouseManager.inst().init();
-    ClickHandlerManager.inst();
+
+    RendererManager.inst().render();
   }
 
   public handleResize({ width, height, left, top }: { width: number; height: number; left: number; top: number }) {
     console.log('handleResize', width, height, left, top);
 
     CameraManager.inst().resize();
-    RendererManager.inst().updateSize();
+    RendererManager.inst().updateSize({ width, height });
     // важно чтобы не было мерцания
     RendererManager.inst().getRenderer().render(this.scene, CameraManager.inst().getCurrentCamera());
   }

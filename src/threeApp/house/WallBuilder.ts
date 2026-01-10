@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { ClickHandlerManager, ObjectPriority } from '@/threeApp/scene/ClickHandlerManager';
 import { PointsManager } from '@/threeApp/house/points/PointsManager';
 
 interface Point {
@@ -47,30 +46,6 @@ export class WallBuilder extends ContextSingleton<WallBuilder> {
         scene.add(wallMesh);
         this.wallMeshesMap.set(wall.id, wallMesh);
       }
-    });
-
-    this.registerClickHandlers();
-  }
-
-  private registerClickHandlers(): void {
-    ClickHandlerManager.inst().registerHandler('wall', ObjectPriority.wall, (object, _intersect) => {
-      const wallId = object.userData?.wallId;
-      if (wallId !== undefined) {
-        console.log('Кликнули на стену:', wallId);
-        // Здесь можно добавить логику обработки клика на стену
-        return true;
-      }
-      return false;
-    });
-
-    ClickHandlerManager.inst().registerHandler('point', ObjectPriority.point, (object, _intersect) => {
-      const pointId = object.userData?.pointId;
-      if (pointId !== undefined) {
-        console.log('Кликнули на точку:', pointId);
-        // Здесь можно добавить логику обработки клика на точку
-        return true;
-      }
-      return false;
     });
   }
 

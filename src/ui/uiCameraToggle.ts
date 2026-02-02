@@ -5,11 +5,9 @@ export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
   private container: HTMLElement | null = null;
   private button: HTMLButtonElement | null = null;
   private isPerspective: boolean = false;
-  private onToggleCallback: ((isPerspective: boolean) => void) | null = null;
 
   public init(container: HTMLElement) {
     this.container = container;
-    this.onToggleCallback = this.switchCameraType;
     const div = this.createDiv();
     this.container.appendChild(div);
 
@@ -42,7 +40,7 @@ export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
       transition: background 0.3s;
     `;
 
-    return `<button style="${css}">Перспективная</button>`;
+    return `<button style="${css}">3D</button>`;
   }
 
   private eventStop(div: HTMLElement) {
@@ -58,23 +56,23 @@ export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
   private toggle() {
     this.isPerspective = !this.isPerspective;
     this.updateText();
-    if (this.onToggleCallback) {
-      this.onToggleCallback(this.isPerspective);
-    }
+    this.switchCameraType(this.isPerspective);
   }
 
   private updateText() {
     if (this.button) {
-      this.button.textContent = this.isPerspective ? 'Перспективная' : 'Ортогональная';
+      this.button.textContent = this.isPerspective ? '2D' : '3D';
     }
   }
 
-  public setCameraType(isPerspective: boolean) {
-    this.isPerspective = isPerspective;
+  public setCameraType({ type }: { type: '3D' | '2D' }) {
+    this.isPerspective = type === '3D';
+    console.log(4444, type, this.isPerspective);
     this.updateText();
+    this.switchCameraType(this.isPerspective);
   }
 
-  public switchCameraType(isPerspective: boolean) {
+  private switchCameraType(isPerspective: boolean) {
     CameraManager.inst().switchCamera(isPerspective);
   }
 }

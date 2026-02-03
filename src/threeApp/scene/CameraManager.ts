@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '../../core/ContextSingleton';
 import { ControlsManager } from './ControlsManager';
+import { RendererManager } from './RendererManager';
 
 /**
  * Менеджер камер
@@ -11,6 +12,15 @@ export class CameraManager extends ContextSingleton<CameraManager> {
   public currentCamera!: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   public isPerspectiveMode: boolean = false;
 
+  /** Аспект вьюпорта. В Worker window не существует — берём из renderer */
+  private getAspect(): number {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth / window.innerHeight;
+    }
+    const el = RendererManager.inst().getRenderer().domElement;
+    return el.width / el.height;
+  }
+
   public init(): void {
     this.perspectiveCamera = this.createPerspectiveCamera();
     this.orthographicCamera = this.createOrthographicCamera();
@@ -18,7 +28,7 @@ export class CameraManager extends ContextSingleton<CameraManager> {
   }
 
   private createPerspectiveCamera(): THREE.PerspectiveCamera {
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, this.getAspect(), 0.1, 1000);
     camera.position.set(5, 5, 5);
     camera.lookAt(0, 0, 0);
     camera.userData.state = {
@@ -30,7 +40,7 @@ export class CameraManager extends ContextSingleton<CameraManager> {
   }
 
   private createOrthographicCamera(): THREE.OrthographicCamera {
-    const aspect = window.innerWidth / window.innerHeight;
+    const aspect = this.getAspect();
     const size = 5;
     const camera = new THREE.OrthographicCamera(
       -size * aspect,
@@ -51,7 +61,7 @@ export class CameraManager extends ContextSingleton<CameraManager> {
   }
 
   public updateOrthographicCameraSize(): void {
-    const aspect = window.innerWidth / window.innerHeight;
+    const aspect = this.getAspect();
     const size = 5;
 
     this.orthographicCamera.left = -size * aspect;
@@ -62,7 +72,7 @@ export class CameraManager extends ContextSingleton<CameraManager> {
   }
 
   public updatePerspectiveCameraSize(): void {
-    const aspect = window.innerWidth / window.innerHeight;
+    const aspect = this.getAspect();
     this.perspectiveCamera.aspect = aspect;
     this.perspectiveCamera.updateProjectionMatrix();
   }

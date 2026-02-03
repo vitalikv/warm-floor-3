@@ -3,8 +3,8 @@ import { ContextSingleton } from '@/core/ContextSingleton';
 import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { CameraManager } from '@/threeApp/scene/CameraManager';
 import { RendererManager } from '@/threeApp/scene/RendererManager';
-import { PointMove } from '@/threeApp/house/points/PointMove';
-import { ControlsManager } from '@/threeApp/scene/ControlsManager';
+import { ClickRouter } from '@/threeApp/interaction/routing/ClickRouter';
+import { identifyObject } from '@/threeApp/interaction/routing/ObjectIdentifier';
 
 // Типы колбэков для разных событий мыши
 // Возвращают true, если событие обработано и не нужно продолжать цепочку
@@ -21,15 +21,17 @@ export class MouseManager extends ContextSingleton<MouseManager> {
   private raycaster!: THREE.Raycaster;
   private mouse!: THREE.Vector2;
 
-  private actObj: THREE.Mesh | null = null;
+  private actObj: THREE.Object3D | null = null;
 
   // Колбэки для разных событий (с приоритетами)
   private mouseDownHandlers: MouseHandler<MouseEventCallback>[] = [];
 
-  public init(): void {
+  public init(opts?: { skipDomListeners?: boolean }): void {
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
-    this.setupEventListeners();
+    if (!opts?.skipDomListeners) {
+      this.setupEventListeners();
+    }
   }
 
   private setupEventListeners(): void {
@@ -40,11 +42,12 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     domElement.addEventListener('pointerup', this.pointerUp);
   }
 
-  // Находим точку в переданных intersects
-  private findPointInIntersects(intersects: THREE.Intersection[]): THREE.Mesh | null {
+  // Находим любой интерактивный объект в intersects
+  private findInteractiveObject(intersects: THREE.Intersection[]): THREE.Object3D | null {
     for (const intersect of intersects) {
-      if (intersect.object.userData?.type === 'point' && intersect.object instanceof THREE.Mesh) {
-        return intersect.object as THREE.Mesh;
+      const type = intersect.object.userData?.type;
+      if (type === 'point' || type === 'wall') {
+        return intersect.object;
       }
     }
     return null;
@@ -53,17 +56,17 @@ export class MouseManager extends ContextSingleton<MouseManager> {
   private pointerDown = (event: MouseEvent) => {
     this.updateRaycast(event.clientX, event.clientY);
     const intersects = this.raycaster.intersectObjects(SceneManager.inst().getScene().children, true);
-    const point = this.findPointInIntersects(intersects);
+    const target = this.findInteractiveObject(intersects);
 
-    if (point) {
-      PointMove.inst().pointerDown({ obj: point });
-      // Отключаем контролы камеры во время перетаскивания
-      const controls = ControlsManager.inst().getControls();
-      if ('enabled' in controls) {
-        (controls as any).enabled = false;
-      }
-
-      this.actObj = point;
+    if (target) {
+      this.actObj = target;
+      ClickRouter.inst().route({
+        objectType: identifyObject(target),
+        object: target,
+        action: 'down',
+        clientX: event.clientX,
+        clientY: event.clientY,
+      });
     }
   };
 
@@ -71,11 +74,13 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     this.updateRaycast(event.clientX, event.clientY);
 
     if (this.actObj) {
-      PointMove.inst().pointerMove();
-    }
-
-    const controls = ControlsManager.inst().getControls();
-    if (!controls.enabled) {
+      ClickRouter.inst().route({
+        objectType: identifyObject(this.actObj),
+        object: this.actObj,
+        action: 'move',
+        clientX: event.clientX,
+        clientY: event.clientY,
+      });
       RendererManager.inst().render();
     }
   };
@@ -84,16 +89,26 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     this.updateRaycast(event.clientX, event.clientY);
 
     if (this.actObj) {
-      PointMove.inst().pointerUp();
-
-      // Включаем контролы камеры обратно
-      const controls = ControlsManager.inst().getControls();
-      if ('enabled' in controls) {
-        (controls as any).enabled = true;
-      }
+      ClickRouter.inst().route({
+        objectType: identifyObject(this.actObj),
+        object: this.actObj,
+        action: 'up',
+        clientX: event.clientX,
+        clientY: event.clientY,
+      });
       this.actObj = null;
     }
   };
+
+  /** Вызов из Worker-контекста: создаёт синтетическое событие и делегирует в существующие обработчики */
+  public dispatchPointer(type: 'pointerdown' | 'pointermove' | 'pointerup', clientX: number, clientY: number): void {
+    const syntheticEvent = { clientX, clientY } as unknown as MouseEvent;
+    switch (type) {
+      case 'pointerdown':  this.pointerDown(syntheticEvent);  break;
+      case 'pointermove':  this.pointerMove(syntheticEvent);  break;
+      case 'pointerup':    this.pointerUp(syntheticEvent);    break;
+    }
+  }
 
   private updateRaycast(mouseX: number, mouseY: number) {
     this.updateMousePosition(mouseX, mouseY);
@@ -102,9 +117,18 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     this.raycaster.setFromCamera(this.mouse, camera);
   }
 
+  /** В Worker canvas — OffscreenCanvas без getBoundingClientRect; берём rect из WorkerDomStub */
+  private getCanvasRect(): { left: number; top: number; width: number; height: number } {
+    const canvas = SceneManager.inst().getCanvas();
+    if (canvas instanceof OffscreenCanvas) {
+      return SceneManager.inst().getDomStub()?.getBoundingClientRect()
+        ?? { left: 0, top: 0, width: canvas.width, height: canvas.height };
+    }
+    return canvas.getBoundingClientRect();
+  }
+
   private updateMousePosition(mouseX: number, mouseY: number) {
-    const domElement = RendererManager.inst().getDomElement();
-    const rect = domElement.getBoundingClientRect();
+    const rect = this.getCanvasRect();
     this.mouse.x = ((mouseX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((mouseY - rect.top) / rect.height) * 2 + 1;
   }

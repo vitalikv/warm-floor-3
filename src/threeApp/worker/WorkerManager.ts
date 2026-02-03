@@ -1,9 +1,9 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
+import { ApiThreeToUi } from '@/api/apiLocal/ApiThreeToUi';
 import type { MainToWorkerMsg, WorkerToMainMsg } from './WorkerTypes';
 
 /**
  * Main-thread сторона воркера.
- * Stage 1: скелет, не подключён к приложению.
  * Stage 2: вызывается из ThreeMain при useWorker === true.
  */
 export class WorkerManager extends ContextSingleton<WorkerManager> {
@@ -18,12 +18,24 @@ export class WorkerManager extends ContextSingleton<WorkerManager> {
       this.handleMessage(event.data);
     };
 
+    const rect = canvas.getBoundingClientRect();
     this.send({
       type: 'init',
       canvas: offscreen,
-      width: canvas.getBoundingClientRect().width,
-      height: canvas.getBoundingClientRect().height,
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
     });
+
+    this.setupPointerForwarding(canvas);
+  }
+
+  private setupPointerForwarding(canvas: HTMLCanvasElement): void {
+    canvas.addEventListener('pointerdown', (e) => this.send({ type: 'pointerdown', clientX: e.clientX, clientY: e.clientY, button: e.button, buttons: e.buttons, pointerId: e.pointerId }));
+    canvas.addEventListener('pointermove', (e) => this.send({ type: 'pointermove', clientX: e.clientX, clientY: e.clientY, button: e.button, buttons: e.buttons, pointerId: e.pointerId }));
+    canvas.addEventListener('pointerup',   (e) => this.send({ type: 'pointerup',   clientX: e.clientX, clientY: e.clientY, button: e.button, buttons: e.buttons, pointerId: e.pointerId }));
+    canvas.addEventListener('wheel', (e) => { e.preventDefault(); this.send({ type: 'wheel', deltaY: e.deltaY, clientX: e.clientX, clientY: e.clientY }); }, { passive: false });
   }
 
   public send(msg: MainToWorkerMsg): void {
@@ -38,13 +50,13 @@ export class WorkerManager extends ContextSingleton<WorkerManager> {
   private handleMessage(msg: WorkerToMainMsg): void {
     switch (msg.type) {
       case 'ready':
-        // TODO Stage 2
+        this.send({ type: 'loadHouse', url: '/assets/1.json' });
         break;
       case 'objectSelected':
-        // TODO Stage 2: ApiThreeToUi.inst().onObjectSelected(msg.objectId)
+        ApiThreeToUi.inst().onObjectSelected(msg.objectId);
         break;
       case 'houseLoaded':
-        // TODO Stage 2
+        // уведомление UI через ApiThreeToUi (Stage 3)
         break;
     }
   }

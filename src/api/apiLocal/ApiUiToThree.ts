@@ -1,6 +1,8 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { HouseLoader } from '@/threeApp/house/HouseLoader';
 import { WallsManager } from '@/threeApp/house/walls/WallsManager';
+import { CameraManager } from '@/threeApp/scene/CameraManager';
+import { WorkerManager } from '@/threeApp/worker/WorkerManager';
 import type { HouseDataSnapshot, SaveProjectParams, SwitchCameraParams } from './ApiLocalTypes';
 
 /**
@@ -27,9 +29,13 @@ export class ApiUiToThree extends ContextSingleton<ApiUiToThree> {
     };
   }
 
-  /** Переключить камеру */
-  public switchCamera(_params: SwitchCameraParams): void {
-    // TODO Stage 2
+  /** Переключить камеру. Worker-aware: если воркер запущен — шлёт postMessage, иначе прямой вызов */
+  public switchCamera(params: SwitchCameraParams): void {
+    if (WorkerManager.inst().isRunning()) {
+      WorkerManager.inst().send({ type: 'switchCamera', mode: params.mode });
+    } else {
+      CameraManager.inst().switchCamera(params.mode === '3D');
+    }
   }
 
   /** Сохранить проект. Скачивание файла — ответственность UI */

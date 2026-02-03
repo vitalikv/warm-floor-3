@@ -10,7 +10,7 @@ export class RendererManager extends ContextSingleton<RendererManager> {
   public init({ canvas, rect }: { canvas: HTMLCanvasElement | OffscreenCanvas; rect: DOMRectReadOnly }) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, stencil: true });
     this.updateSize({ width: rect.width, height: rect.height });
-    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setPixelRatio(typeof window !== 'undefined' ? window.devicePixelRatio : 1);
   }
 
   public updateSize({ width, height }: { width: number; height: number }) {

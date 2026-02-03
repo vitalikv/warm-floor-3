@@ -1,9 +1,22 @@
+import * as THREE from 'three';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
+import { MouseManager } from '@/threeApp/scene/MouseManager';
+import { CameraManager } from '@/threeApp/scene/CameraManager';
+import { RendererManager } from '@/threeApp/scene/RendererManager';
+import { WallsManager } from '@/threeApp/house/walls/WallsManager';
+import { HouseLoader } from '@/threeApp/house/HouseLoader';
+import { LoaderModel } from '@/threeApp/model/LoaderModel';
+import { InteractionOrchestrator } from '@/threeApp/interaction/core/InteractionOrchestrator';
+import { PointFeature } from '@/threeApp/interaction/features/points/PointFeature';
 import type { MainToWorkerMsg, WorkerToMainMsg } from './WorkerTypes';
 
 /**
  * Точка входа Web Worker.
- * Stage 1: скелет. Сцена не инициализируется.
  * Stage 2: каждый case — реальный вызов менеджера.
+ *
+ * Примечание: в Worker нет window/document. window.devicePixelRatio
+ * и window.innerWidth используются в CameraManager/RendererManager,
+ * но вызываются только после init, когда размеры переданы явно.
  */
 
 function sendToMain(msg: WorkerToMainMsg): void {
@@ -14,30 +27,36 @@ self.onmessage = (event: MessageEvent<MainToWorkerMsg>) => {
   const msg = event.data;
 
   switch (msg.type) {
-    case 'init':
-      // TODO Stage 2: SceneManager.inst().init({ canvas: msg.canvas, ... })
+    case 'init': {
+      const rect = new DOMRect(msg.left, msg.top, msg.width, msg.height);
+      SceneManager.inst().init({ canvas: msg.canvas, rect });
+      InteractionOrchestrator.inst().init();
+      InteractionOrchestrator.inst().registerFeature(new PointFeature());
       sendToMain({ type: 'ready' });
       break;
+    }
     case 'resize':
-      // TODO Stage 2: SceneManager.inst().handleResize(...)
+      SceneManager.inst().handleResize({ width: msg.width, height: msg.height, left: msg.left, top: msg.top });
       break;
     case 'pointerdown':
-      // TODO Stage 2: MouseManager forwarding
-      break;
     case 'pointermove':
-      // TODO Stage 2: MouseManager forwarding
-      break;
     case 'pointerup':
-      // TODO Stage 2: MouseManager forwarding
+      MouseManager.inst().dispatchPointer(msg.type, msg.clientX, msg.clientY);
+      SceneManager.inst().getDomStub()?.emitPointer(msg.type, msg.clientX, msg.clientY, msg.button, msg.buttons, msg.pointerId);
       break;
     case 'switchCamera':
-      // TODO Stage 2: CameraManager.inst().switchCamera(...)
+      CameraManager.inst().switchCamera(msg.mode === '3D');
       break;
     case 'loadHouse':
-      // TODO Stage 2: fetch + WallsManager.buildWalls
+      HouseLoader.inst().loadHouse();
+      LoaderModel.inst().loadJSON();
+      break;
+    case 'wheel':
+      SceneManager.inst().getDomStub()?.emitWheel(msg.deltaY, msg.clientX, msg.clientY);
       break;
     case 'movePoint':
-      // TODO Stage 2: WallsManager.inst().updatePointPosition(...)
+      WallsManager.inst().updatePointPosition(msg.pointId, new THREE.Vector3(msg.x, msg.y, msg.z));
+      RendererManager.inst().render();
       break;
   }
 };

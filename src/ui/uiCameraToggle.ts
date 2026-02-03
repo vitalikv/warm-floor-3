@@ -1,5 +1,5 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { CameraManager } from '@/threeApp/scene/CameraManager';
+import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
 
 export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
   private container: HTMLElement | null = null;
@@ -72,6 +72,6 @@ export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
   }
 
   private switchCameraType(isPerspective: boolean) {
-    CameraManager.inst().switchCamera(isPerspective);
+    ApiUiToThree.inst().switchCamera({ mode: isPerspective ? '3D' : '2D' });
   }
 }

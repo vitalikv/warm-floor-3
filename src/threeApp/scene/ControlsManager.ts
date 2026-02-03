@@ -8,11 +8,12 @@ import { RendererManager } from '@/threeApp/scene/RendererManager';
 export class ControlsManager extends ContextSingleton<ControlsManager> {
   public controls!: OrbitControls;
 
-  public init() {
+  public init(domElement?: EventTarget) {
     const cameraManager = CameraManager.inst();
     const rendererManager = RendererManager.inst();
 
-    this.controls = new OrbitControls(cameraManager.currentCamera, rendererManager.getDomElement());
+    const element = (domElement ?? rendererManager.getDomElement()) as unknown as HTMLElement;
+    this.controls = new OrbitControls(cameraManager.currentCamera, element);
 
     this.controls.enableDamping = false;
     this.controls.dampingFactor = 0.05;

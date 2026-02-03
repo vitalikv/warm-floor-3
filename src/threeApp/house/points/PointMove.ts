@@ -4,6 +4,10 @@ import { MouseManager } from '@/threeApp/scene/MouseManager';
 import { SceneManager } from '@/threeApp/scene/SceneManager';
 import { WallsManager } from '../walls/WallsManager';
 
+/**
+ * @deprecated Stage 2: Заменён PointDragHandler + DragBehavior.
+ * Удалится в Stage 3.
+ */
 export class PointMove extends ContextSingleton<PointMove> {
   private isDown = false;
   private offset = new THREE.Vector3();

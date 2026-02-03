@@ -18,6 +18,12 @@ interface HouseData {
 }
 
 export class HouseLoader extends ContextSingleton<HouseLoader> {
+  private houseData: HouseData | null = null;
+
+  public getHouseData(): HouseData | null {
+    return this.houseData;
+  }
+
   public async loadHouse(): Promise<void> {
     try {
       const url = new URL('/assets/1.json', import.meta.url);
@@ -28,6 +34,7 @@ export class HouseLoader extends ContextSingleton<HouseLoader> {
       }
 
       const jsonData: HouseData = await response.json();
+      this.houseData = jsonData;
       console.log('Загруженный JSON дома:', jsonData);
 
       if (!jsonData.level || jsonData.level.length === 0) {

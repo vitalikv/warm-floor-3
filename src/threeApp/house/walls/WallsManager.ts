@@ -99,6 +99,14 @@ export class WallsManager extends ContextSingleton<WallsManager> {
    * Перестраивает стену по её ID
    * Оптимизированная версия: обновляет только геометрию существующего меша
    */
+  public getPoints(): Point[] {
+    return Array.from(this.pointsMap.values());
+  }
+
+  public getWalls(): WallData[] {
+    return Array.from(this.wallsMap.values());
+  }
+
   private rebuildWall(wallId: number): void {
     const wall = this.wallsMap.get(wallId);
     if (!wall) {

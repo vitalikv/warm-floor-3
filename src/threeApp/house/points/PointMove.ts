@@ -6,8 +6,6 @@ import { WallsManager } from '../walls/WallsManager';
 
 export class PointMove extends ContextSingleton<PointMove> {
   private isDown = false;
-  private isMove = false;
-  private isUp = false;
   private offset = new THREE.Vector3();
   private plane!: THREE.Mesh;
   private actObj: THREE.Mesh | null = null;
@@ -34,7 +32,6 @@ export class PointMove extends ContextSingleton<PointMove> {
 
   public pointerDown = ({ obj }: { obj: THREE.Mesh }) => {
     this.isDown = false;
-    this.isMove = false;
 
     this.setActObj(obj);
 
@@ -51,7 +48,6 @@ export class PointMove extends ContextSingleton<PointMove> {
 
   public pointerMove = () => {
     if (!this.isDown) return;
-    this.isMove = true;
 
     const actObj = this.getActObj();
     if (!actObj) return;
@@ -74,7 +70,6 @@ export class PointMove extends ContextSingleton<PointMove> {
 
   public pointerUp = () => {
     this.isDown = false;
-    this.isMove = false;
 
     this.setActObj(null);
   };

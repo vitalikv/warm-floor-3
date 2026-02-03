@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { CameraManager } from '@/threeApp/scene/CameraManager';
 import { SceneManager } from '@/threeApp/scene/SceneManager';
-import { ControlsManager } from './ControlsManager';
+
 
 export class RendererManager extends ContextSingleton<RendererManager> {
   public renderer!: THREE.WebGLRenderer;

@@ -1,9 +1,8 @@
 import * as THREE from 'three';
-import { ContextSingleton } from '../../../core/ContextSingleton';
-import { CameraManager } from '../../scene/CameraManager';
-import { MouseManager } from '../../scene/MouseManager';
-import { SceneManager } from '../../scene/SceneManager';
-import { WallBuilder } from '../WallBuilder';
+import { ContextSingleton } from '@/core/ContextSingleton';
+import { MouseManager } from '@/threeApp/scene/MouseManager';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
+import { WallsManager } from '../walls/WallsManager';
 
 export class PointMove extends ContextSingleton<PointMove> {
   private isDown = false;
@@ -69,7 +68,7 @@ export class PointMove extends ContextSingleton<PointMove> {
 
     const pointId = actObj.userData.pointId;
     if (pointId !== undefined) {
-      WallBuilder.inst().updatePointPosition(pointId, actObj.position);
+      WallsManager.inst().updatePointPosition(pointId, actObj.position);
     }
   };
 

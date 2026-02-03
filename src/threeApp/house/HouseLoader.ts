@@ -1,21 +1,7 @@
 import { ContextSingleton } from '../../core/ContextSingleton';
-import { WallBuilder } from './WallBuilder';
+import { WallsManager } from './walls/WallsManager';
 import { SceneManager } from '../scene/SceneManager';
-
-interface Point {
-  id: number;
-  pos: { x: number; y: number; z: number };
-  type: string;
-}
-
-interface Wall {
-  id: number;
-  p: { id: number[] };
-  size: { y: number; z: number };
-  windows: any[];
-  doors: any[];
-  material: Array<{ index: number; color: number; img: string }>;
-}
+import type { Point, Wall } from './walls/types';
 
 interface Level {
   version: { id: number };
@@ -63,7 +49,7 @@ export class HouseLoader extends ContextSingleton<HouseLoader> {
 
       const scene = SceneManager.inst().getScene();
 
-      WallBuilder.inst().buildWalls(firstLevel.points, firstLevel.walls, scene);
+      WallsManager.inst().buildWalls(firstLevel.points, firstLevel.walls, scene);
 
       console.log(`Построено ${firstLevel.walls.length} стен`);
     } catch (error) {

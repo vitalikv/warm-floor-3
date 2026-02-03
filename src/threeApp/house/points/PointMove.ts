@@ -22,7 +22,7 @@ export class PointMove extends ContextSingleton<PointMove> {
   private createPlane() {
     const geometry = new THREE.PlaneGeometry(10000, 10000);
     const material = new THREE.MeshPhongMaterial({ color: 0xffff00, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
-    //material.visible = false;
+    material.visible = false;
     const plane = new THREE.Mesh(geometry, material);
     plane.rotation.set(-Math.PI / 2, 0, 0);
     SceneManager.inst().getScene().add(plane);

@@ -1,6 +1,5 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { HouseLoader } from '@/threeApp/house/HouseLoader';
-import { WallsManager } from '@/threeApp/house/walls/WallsManager';
+import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
 
 export class UiTopPanel extends ContextSingleton<UiTopPanel> {
   private divMenu!: HTMLDivElement;
@@ -52,16 +51,12 @@ export class UiTopPanel extends ContextSingleton<UiTopPanel> {
   }
 
   private saveProject(): void {
-    const houseData = HouseLoader.inst().getHouseData();
-    if (!houseData) {
+    const snapshot = ApiUiToThree.inst().getHouseSnapshot();
+    if (!snapshot.raw) {
       console.warn('Данные дома не загружены');
       return;
     }
-
-    houseData.level[0].points = WallsManager.inst().getPoints();
-    houseData.level[0].walls = WallsManager.inst().getWalls();
-
-    this.downloadJson(houseData, 'house.json');
+    this.downloadJson(snapshot.raw, 'house.json');
   }
 
   private downloadJson(data: unknown, filename: string): void {

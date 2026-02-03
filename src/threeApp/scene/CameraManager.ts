@@ -69,7 +69,6 @@ export class CameraManager extends ContextSingleton<CameraManager> {
 
   public switchCamera(isPerspective: boolean): void {
     this.isPerspectiveMode = isPerspective;
-    console.log(3333, isPerspective);
     // if (isPerspective) {
     //   this.currentCamera = this.perspectiveCamera;
     // } else {

@@ -29,8 +29,6 @@ export class RendererManager extends ContextSingleton<RendererManager> {
     if (!this.renderer) return;
     //if (this.stats) this.stats.begin();
 
-    console.log('render');
-
     //ControlsManager.inst().update();
     const camera = CameraManager.inst().getCurrentCamera();
     this.renderer.render(SceneManager.inst().getScene(), camera);

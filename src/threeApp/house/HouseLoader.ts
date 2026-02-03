@@ -35,7 +35,6 @@ export class HouseLoader extends ContextSingleton<HouseLoader> {
 
       const jsonData: HouseData = await response.json();
       this.houseData = jsonData;
-      console.log('Загруженный JSON дома:', jsonData);
 
       if (!jsonData.level || jsonData.level.length === 0) {
         console.warn('Нет уровней в данных');
@@ -57,8 +56,6 @@ export class HouseLoader extends ContextSingleton<HouseLoader> {
       const scene = SceneManager.inst().getScene();
 
       WallsManager.inst().buildWalls(firstLevel.points, firstLevel.walls, scene);
-
-      console.log(`Построено ${firstLevel.walls.length} стен`);
     } catch (error) {
       console.error('Ошибка при загрузке дома:', error);
     }

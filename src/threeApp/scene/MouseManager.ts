@@ -54,7 +54,6 @@ export class MouseManager extends ContextSingleton<MouseManager> {
     this.updateRaycast(event.clientX, event.clientY);
     const intersects = this.raycaster.intersectObjects(SceneManager.inst().getScene().children, true);
     const point = this.findPointInIntersects(intersects);
-    console.log(3333, point);
 
     if (point) {
       PointMove.inst().pointerDown({ obj: point });

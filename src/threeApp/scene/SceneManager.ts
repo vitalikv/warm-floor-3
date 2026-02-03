@@ -26,9 +26,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     RendererManager.inst().render();
   }
 
-  public handleResize({ width, height, left, top }: { width: number; height: number; left: number; top: number }) {
-    console.log('handleResize', width, height, left, top);
-
+  public handleResize({ width, height, left: _left, top: _top }: { width: number; height: number; left: number; top: number }) {
     CameraManager.inst().resize();
     RendererManager.inst().updateSize({ width, height });
     // важно чтобы не было мерцания

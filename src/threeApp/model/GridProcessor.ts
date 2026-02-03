@@ -34,7 +34,6 @@ export class GridProcessor extends ContextSingleton<GridProcessor> {
    */
   public processGrids(jsonData: JsonData): void {
     if (!jsonData.grids || jsonData.grids.length === 0) {
-      console.log('Нет сеток для обработки');
       return;
     }
 
@@ -45,7 +44,6 @@ export class GridProcessor extends ContextSingleton<GridProcessor> {
       this.createGrid(grid, scene, index);
     });
 
-    console.log(`Обработано ${jsonData.grids.length} сеток`);
   }
 
   /**

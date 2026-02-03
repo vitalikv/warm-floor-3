@@ -7,7 +7,6 @@ export class LoaderModel extends ContextSingleton<LoaderModel> {
     const response = await fetch(url);
 
     const jsonData = await response.json();
-    console.log('Загруженный JSON:', jsonData);
 
     // Обрабатываем сетки из JSON
     GridProcessor.inst().processGrids(jsonData);

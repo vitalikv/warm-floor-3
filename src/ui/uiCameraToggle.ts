@@ -67,7 +67,6 @@ export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
 
   public setCameraType({ type }: { type: '3D' | '2D' }) {
     this.isPerspective = type === '3D';
-    console.log(4444, type, this.isPerspective);
     this.updateText();
     this.switchCameraType(this.isPerspective);
   }

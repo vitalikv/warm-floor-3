@@ -155,6 +155,9 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
 
     if (this.linePass) {
       this.linePass.uniforms.resolution.value.set(width, height);
+      // После resize OutlinePass может пересоздать render-target-ы —
+      // обновляем ссылку на маску
+      this.linePass.uniforms.maskTexture.value = this.outlinePass.renderTargetMaskBuffer.texture;
     }
   }
 
@@ -167,7 +170,7 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
   public render(): number {
     const camera = CameraManager.inst().getCurrentCamera();
     this.renderPass.camera = camera;
-    (this.outlinePass as any).camera = camera;   // OutlinePass.camera не в public-типах three.js
+    (this.outlinePass as any).renderCamera = camera;
 
     // autoReset по умолчанию true в r182: каждый renderer.render() (RenderPass + FullScreenQuad в ShaderPass)
     // сбрасывает info перед gl.draw. Отключаем, чтобы аккумулировать суммарные draw calls за кадр.
@@ -177,6 +180,19 @@ export class EffectsManager extends ContextSingleton<EffectsManager> {
     this.composer.render();
     this.renderer.info.autoReset = prevAutoReset;
     return this.renderer.info.render.calls;
+  }
+
+  /**
+   * Очищает mask buffer OutlinePass.
+   * Нужно при deselect: OutlinePass не очищает маску когда selectedObjects пуст,
+   * а linePass продолжает читать устаревшую маску.
+   */
+  public clearOutlineMask(): void {
+    this.outlinePass.selectedObjects = [];
+    const currentRT = this.renderer.getRenderTarget();
+    this.renderer.setRenderTarget(this.outlinePass.renderTargetMaskBuffer);
+    this.renderer.clear();
+    this.renderer.setRenderTarget(currentRT);
   }
 
   public dispose() {

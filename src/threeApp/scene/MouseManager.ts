@@ -5,6 +5,7 @@ import { CameraManager } from '@/threeApp/scene/CameraManager';
 import { RendererManager } from '@/threeApp/scene/RendererManager';
 import { ClickRouter } from '@/threeApp/interaction/routing/ClickRouter';
 import { identifyObject } from '@/threeApp/interaction/routing/ObjectIdentifier';
+import { SelectionManager } from '@/threeApp/interaction/features/selection/SelectionManager';
 
 // Типы колбэков для разных событий мыши
 // Возвращают true, если событие обработано и не нужно продолжать цепочку
@@ -67,6 +68,8 @@ export class MouseManager extends ContextSingleton<MouseManager> {
         clientX: event.clientX,
         clientY: event.clientY,
       });
+    } else {
+      SelectionManager.inst().deselect();
     }
   };
 

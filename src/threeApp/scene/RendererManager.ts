@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { CameraManager } from '@/threeApp/scene/CameraManager';
 import { SceneManager } from '@/threeApp/scene/SceneManager';
+import { EffectsManager }    from '@/threeApp/scene/EffectsManager';
+import { PerformanceMonitor } from '@/utils/helpers/PerformanceMonitor';
 
 
 export class RendererManager extends ContextSingleton<RendererManager> {
@@ -27,12 +29,18 @@ export class RendererManager extends ContextSingleton<RendererManager> {
 
   public render() {
     if (!this.renderer) return;
-    //if (this.stats) this.stats.begin();
 
-    //ControlsManager.inst().update();
-    const camera = CameraManager.inst().getCurrentCamera();
-    this.renderer.render(SceneManager.inst().getScene(), camera);
+    let drawCalls: number;
 
-    //if (this.stats) this.stats.end();
+    if (EffectsManager.inst().enabled) {
+      drawCalls = EffectsManager.inst().render();
+    } else {
+      this.renderer.info.reset();
+      const camera = CameraManager.inst().getCurrentCamera();
+      this.renderer.render(SceneManager.inst().getScene(), camera);
+      drawCalls = this.renderer.info.render.calls;
+    }
+
+    PerformanceMonitor.inst().onFrameRendered(drawCalls);
   }
 }

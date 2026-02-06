@@ -8,6 +8,7 @@ import { HouseLoader } from '@/threeApp/house/HouseLoader';
 import { LoaderModel } from '@/threeApp/model/LoaderModel';
 import { InteractionOrchestrator } from '@/threeApp/interaction/core/InteractionOrchestrator';
 import { PointFeature } from '@/threeApp/interaction/features/points/PointFeature';
+import { PerformanceMonitor } from '@/utils/helpers/PerformanceMonitor';
 import type { MainToWorkerMsg, WorkerToMainMsg } from './WorkerTypes';
 
 /**
@@ -32,6 +33,7 @@ self.onmessage = (event: MessageEvent<MainToWorkerMsg>) => {
       SceneManager.inst().init({ canvas: msg.canvas, rect });
       InteractionOrchestrator.inst().init();
       InteractionOrchestrator.inst().registerFeature(new PointFeature());
+      PerformanceMonitor.inst().onUpdate = (fps, drawCalls) => sendToMain({ type: 'stats', fps, drawCalls });
       sendToMain({ type: 'ready' });
       break;
     }

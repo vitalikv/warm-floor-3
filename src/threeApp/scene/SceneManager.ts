@@ -6,6 +6,7 @@ import { LightsManager } from '@/threeApp/scene/LightsManager';
 import { ObjectsManager } from '@/threeApp/scene/ObjectsManager';
 import { ControlsManager } from '@/threeApp/scene/ControlsManager';
 import { MouseManager } from '@/threeApp/scene/MouseManager';
+import { EffectsManager } from '@/threeApp/scene/EffectsManager';
 import { WorkerDomStub } from '@/threeApp/worker/WorkerDomStub';
 
 export class SceneManager extends ContextSingleton<SceneManager> {
@@ -31,6 +32,12 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     ControlsManager.inst().init(this.domStub ?? undefined);
     MouseManager.inst().init({ skipDomListeners: isOffscreen });
 
+    EffectsManager.inst().init({
+      renderer: RendererManager.inst().getRenderer(),
+      width:    rect.width,
+      height:   rect.height,
+    });
+
     RendererManager.inst().render();
   }
 
@@ -40,8 +47,11 @@ export class SceneManager extends ContextSingleton<SceneManager> {
     if (this.domStub) {
       this.domStub.updateRect(left, top, width, height);
     }
-    // важно чтобы не было мерцания
-    RendererManager.inst().getRenderer().render(this.scene, CameraManager.inst().getCurrentCamera());
+    if (EffectsManager.inst().enabled) {
+      EffectsManager.inst().setSize(width, height);
+    }
+
+    RendererManager.inst().render();
   }
 
   /** Возвращает стаб DOM-элемента (только в Worker-контексте) */

@@ -98,7 +98,14 @@ export interface WorkerMsgHouseLoaded {
   pointCount: number;
 }
 
+export interface WorkerMsgStats {
+  type: 'stats';
+  fps: number;
+  drawCalls: number;
+}
+
 export type WorkerToMainMsg =
   | WorkerMsgReady
   | WorkerMsgObjectSelected
-  | WorkerMsgHouseLoaded;
+  | WorkerMsgHouseLoaded
+  | WorkerMsgStats;

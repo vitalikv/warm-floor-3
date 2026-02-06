@@ -1,5 +1,6 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { ApiThreeToUi } from '@/api/apiLocal/ApiThreeToUi';
+import { PerformanceMonitor } from '@/utils/helpers/PerformanceMonitor';
 import type { MainToWorkerMsg, WorkerToMainMsg } from './WorkerTypes';
 
 /**
@@ -57,6 +58,9 @@ export class WorkerManager extends ContextSingleton<WorkerManager> {
         break;
       case 'houseLoaded':
         // уведомление UI через ApiThreeToUi (Stage 3)
+        break;
+      case 'stats':
+        PerformanceMonitor.inst().pushStats(msg.fps, msg.drawCalls);
         break;
     }
   }

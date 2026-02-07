@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { ContextSingleton } from '../../core/ContextSingleton';
 import { ControlsManager } from './ControlsManager';
-import { RendererManager } from './RendererManager';
 
 /**
  * Менеджер камер
@@ -12,19 +11,25 @@ export class CameraManager extends ContextSingleton<CameraManager> {
   public currentCamera!: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   public isPerspectiveMode: boolean = false;
 
-  /** Аспект вьюпорта. В Worker window не существует — берём из renderer */
+  private viewportWidth!: number;
+  private viewportHeight!: number;
+
+  /** Аспект вьюпорта */
   private getAspect(): number {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth / window.innerHeight;
-    }
-    const el = RendererManager.inst().getRenderer().domElement;
-    return el.width / el.height;
+    return this.viewportWidth / this.viewportHeight;
   }
 
-  public init(): void {
+  public init({ width, height }: { width: number; height: number }): void {
+    this.viewportWidth = width;
+    this.viewportHeight = height;
     this.perspectiveCamera = this.createPerspectiveCamera();
     this.orthographicCamera = this.createOrthographicCamera();
     this.currentCamera = this.orthographicCamera;
+  }
+
+  public updateViewportSize(width: number, height: number): void {
+    this.viewportWidth = width;
+    this.viewportHeight = height;
   }
 
   private createPerspectiveCamera(): THREE.PerspectiveCamera {

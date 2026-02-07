@@ -27,7 +27,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
 
     RendererManager.inst().init({ canvas, rect, pixelRatio });
     LightsManager.inst().init();
-    CameraManager.inst().init();
+    CameraManager.inst().init({ width: rect.width, height: rect.height });
     ObjectsManager.inst().init();
     ControlsManager.inst().init(this.domStub ?? undefined);
     MouseManager.inst().init({ skipDomListeners: isOffscreen });
@@ -43,6 +43,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
 
   public handleResize({ width, height, left, top }: { width: number; height: number; left: number; top: number }) {
     RendererManager.inst().updateSize({ width, height });
+    CameraManager.inst().updateViewportSize(width, height);
     CameraManager.inst().resize();
     if (this.domStub) {
       this.domStub.updateRect(left, top, width, height);

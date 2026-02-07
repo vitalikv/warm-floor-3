@@ -1,10 +1,12 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
+import { UiStyles } from '@/ui/styles/UiStyles';
 
 export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
   private container: HTMLElement | null = null;
   private button: HTMLButtonElement | null = null;
   private isPerspective: boolean = false;
+  private baseButtonStyle: string = '';
 
   public init(container: HTMLElement) {
     this.container = container;
@@ -13,6 +15,18 @@ export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
 
     this.button = div.querySelector('button') as HTMLButtonElement;
     this.button.addEventListener('click', () => this.toggle());
+
+    // сохраняем базовый стиль для восстановления после hover
+    const styles = UiStyles.inst();
+    this.baseButtonStyle = this.button.style.cssText;
+
+    // hover-эффект
+    this.button.addEventListener('mouseenter', () => {
+      this.button!.style.cssText += styles.getButtonGradientHover();
+    });
+    this.button.addEventListener('mouseleave', () => {
+      this.button!.style.cssText = this.baseButtonStyle;
+    });
 
     this.updateText();
     this.eventStop(div);
@@ -25,22 +39,19 @@ export class UiCameraToggle extends ContextSingleton<UiCameraToggle> {
   }
 
   private getHtml(): string {
-    const css = `
+    const styles = UiStyles.inst();
+    
+    const btnCss = `
       position: absolute;
       top: 20px;
       right: 20px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px 15px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
+      ${styles.getButtonBaseStyle()}
+      ${styles.getButtonGradient()}
       font-weight: bold;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-      transition: background 0.3s;
+      z-index: 10;
     `;
 
-    return `<button style="${css}">3D</button>`;
+    return `<button style="${btnCss}">3D</button>`;
   }
 
   private eventStop(div: HTMLElement) {

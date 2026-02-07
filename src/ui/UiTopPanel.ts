@@ -1,5 +1,6 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
-import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
+import { UiStyles } from '@/ui/styles/UiStyles';
+import { UiCameraToggle } from '@/ui/UiCameraToggle';
 
 export class UiTopPanel extends ContextSingleton<UiTopPanel> {
   private divMenu!: HTMLDivElement;
@@ -10,8 +11,61 @@ export class UiTopPanel extends ContextSingleton<UiTopPanel> {
 
     this.eventStop({ div: this.divMenu });
 
-    const btn = this.divMenu.querySelector('button') as HTMLButtonElement;
-    btn.addEventListener('click', () => this.saveProject());
+    this.initCameraButtons();
+    this.initHoverEffects();
+  }
+
+  private initCameraButtons() {
+    const div2D = this.divMenu.querySelector('[nameid="butt_camera_2D"]') as HTMLElement;
+    const div3D = this.divMenu.querySelector('[nameid="butt_camera_3D"]') as HTMLElement;
+    const btn2D = div2D?.querySelector('button') as HTMLButtonElement;
+    const btn3D = div3D?.querySelector('button') as HTMLButtonElement;
+    
+    if (btn2D) {
+      btn2D.addEventListener('click', () => {
+        UiCameraToggle.inst().setCameraType({ type: '2D' });
+        this.updateCameraButtons('2D');
+      });
+    }
+    
+    if (btn3D) {
+      btn3D.addEventListener('click', () => {
+        UiCameraToggle.inst().setCameraType({ type: '3D' });
+        this.updateCameraButtons('3D');
+      });
+    }
+
+    // Инициализируем UiCameraToggle для программного управления
+    UiCameraToggle.inst().setCameraType({ type: '3D' });
+    this.updateCameraButtons('3D');
+  }
+
+  private updateCameraButtons(activeType: '2D' | '3D') {
+    const div2D = this.divMenu.querySelector('[nameid="butt_camera_2D"]') as HTMLElement;
+    const div3D = this.divMenu.querySelector('[nameid="butt_camera_3D"]') as HTMLElement;
+    
+    if (activeType === '2D') {
+      if (div2D) div2D.style.display = '';
+      if (div3D) div3D.style.display = 'none';
+    } else {
+      if (div2D) div2D.style.display = 'none';
+      if (div3D) div3D.style.display = '';
+    }
+  }
+
+  private initHoverEffects() {
+    const styles = UiStyles.inst();
+    const buttons = this.divMenu.querySelectorAll('button');
+    
+    buttons.forEach((btn) => {
+      const baseStyle = btn.style.cssText;
+      btn.addEventListener('mouseenter', () => {
+        btn.style.cssText += styles.getButtonGradientHover();
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.cssText = baseStyle;
+      });
+    });
   }
 
   private crDiv() {
@@ -23,52 +77,93 @@ export class UiTopPanel extends ContextSingleton<UiTopPanel> {
   }
 
   private html() {
-    const css1 = `
-    position: absolute; 
-    width: 100%; 
-    height: 100px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color:rgb(133, 133, 133);
-    border: 1px solid rgb(179, 179, 179);
-    background: rgb(241, 241, 241);`;
+    const styles = UiStyles.inst();
+    
+    const panelCss = `
+      position: absolute;
+      width: 100%;
+      height: 41px;
+      margin: 0;
+      ${styles.getPanelStyle()}
+      display: flex;
+      align-items: center;
+      z-index: 2;
+    `;
 
-    const btnCss = `
-    padding: 8px 16px;
-    background: rgb(70, 130, 180);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;`;
+    const menuBtnCss = `
+      ${styles.getButtonBaseStyle()}
+      ${styles.getButtonGradient()}
+      padding: 7px;
+      font-weight: normal;
+    `;
 
-    const html = `<div style="${css1}"><button style="${btnCss}">Сохранить</button></div>`;
+    const toolbarCss = `
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    `;
 
-    return html;
-  }
+    const titleCss = `
+      font: 18px Arial, Helvetica, sans-serif;
+      color: #737373;
+      margin: 0;
+    `;
 
-  private saveProject(): void {
-    const snapshot = ApiUiToThree.inst().getHouseSnapshot();
-    if (!snapshot.raw) {
-      console.warn('Данные дома не загружены');
-      return;
-    }
-    this.downloadJson(snapshot.raw, 'house.json');
-  }
+    const screenshotBtnCss = `
+      ${styles.getButtonBaseStyle()}
+      ${styles.getButtonGradient()}
+      padding: 7px;
+      font-weight: normal;
+      width: auto;
+      height: auto;
+    `;
 
-  private downloadJson(data: unknown, filename: string): void {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const rightSectionCss = `
+      display: flex;
+      margin-right: 15px;
+    `;
+
+    const cameraBtnCss = `
+      ${styles.getButtonBaseStyle()}
+      ${styles.getButtonGradient()}
+      width: 39px;
+      padding: 7px;
+      font-weight: normal;
+      min-width: 39px;
+      text-align: center;
+      position: relative;
+      z-index: 10;
+    `;
+
+    return `
+      <div style="${panelCss}">
+        <div class="button1-wrap-1" style="margin-left: 15px;">
+          <button class="button1 button_gradient_1" style="${menuBtnCss}">меню</button>
+        </div>
+        
+        <div class="toolbar" style="${toolbarCss}">
+          <div style="color: #737373; align-items: center; padding: 0 10px;">
+            <h1 style="${titleCss}">Конструктор дома</h1>
+          </div>
+          <div class="button1-wrap-1">
+            <button class="button1 button_gradient_1" style="${screenshotBtnCss}" title="Скриншот">
+              📷
+            </button>
+          </div>
+        </div>
+        
+        <div class="tp_right_1" style="${rightSectionCss}">
+          <div class="button1-wrap-1" nameid="butt_camera_2D" style="display: none;">
+            <button class="button1 button_gradient_1" style="${cameraBtnCss}">2D</button>
+          </div>
+          <div class="button1-wrap-1" nameid="butt_camera_3D">
+            <button class="button1 button_gradient_1" style="${cameraBtnCss}">3D</button>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   private eventStop({ div }: { div: HTMLDivElement }) {

@@ -3,7 +3,7 @@ import { PerformanceMonitor } from '@/utils/helpers/PerformanceMonitor';
 import { UiStyles } from '@/ui/styles/UiStyles';
 
 /**
- * Оверлей FPS + draw calls. Позиция: bottom-right.
+ * Оверлей FPS + draw calls. Позиция: top-left, под верхней панелью.
  *
  * Обновление — polling через setInterval(500 ms).
  * pointer-events: none — оверлей не перехватывает ввод.
@@ -37,8 +37,8 @@ export class UiStatsPanel extends ContextSingleton<UiStatsPanel> {
     
     const panelCss = `
       position: absolute;
-      bottom: 20px;
-      right: 20px;
+      top: 51px;
+      left: 20px;
       background: rgba(255, 255, 255, 0.9);
       ${styles.getShadow('light')}
       padding: 10px 15px;

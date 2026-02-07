@@ -9,19 +9,30 @@ import { PointFeature } from '@/threeApp/interaction/features/points/PointFeatur
 
 export class ThreeMain extends ContextSingleton<ThreeMain> {
   private useWorker = true;
+  private canvas: HTMLCanvasElement | null = null;
 
   public setUseWorker(flag: boolean) {
     this.useWorker = flag;
   }
 
-  public init({ canvas }: { canvas: HTMLCanvasElement }) {
+  public init({ container }: { container: HTMLElement }) {
+    // Создаем canvas программно
+    this.canvas = document.createElement('canvas');
+    this.canvas.style.display = 'block';
+    this.canvas.style.width = '100%';
+    this.canvas.style.height = '100%';
+    container.appendChild(this.canvas);
+
+    // Отключаем контекстное меню браузера на canvas
+    this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
     if (this.useWorker) {
-      WorkerManager.inst().init(canvas);
+      WorkerManager.inst().init(this.canvas);
     } else {
-      SceneManager.inst().init({ canvas, rect: canvas.getBoundingClientRect() });
+      SceneManager.inst().init({ canvas: this.canvas, rect: this.canvas.getBoundingClientRect() });
     }
 
-    this.initResizeObserver(canvas);
+    this.initResizeObserver(this.canvas);
 
     if (!this.useWorker) {
       InteractionOrchestrator.inst().init();

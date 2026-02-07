@@ -1,5 +1,7 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { UiStyles } from '@/ui/styles/UiStyles';
+import { UiTopPanel } from '@/ui/UiTopPanel';
+import { UiMain } from '@/ui/UiMain';
 
 /**
  * Правая панель — каталог объектов.
@@ -7,12 +9,16 @@ import { UiStyles } from '@/ui/styles/UiStyles';
  */
 export class RightPanel extends ContextSingleton<RightPanel> {
   private div!: HTMLDivElement;
+  private toggleBtn!: HTMLButtonElement;
 
   public init(container: HTMLElement): void {
     this.div = this.createDiv();
     container.appendChild(this.div);
-    this.stopEvents();
+    this.initToggleButton(); // Инициализируем кнопку ДО блокировки событий
     this.initTabs();
+    this.stopEvents();
+    // Устанавливаем начальный offset для верхней панели (панель видна)
+    UiTopPanel.inst().setRightOffset(350);
   }
 
   private createDiv(): HTMLDivElement {
@@ -23,7 +29,7 @@ export class RightPanel extends ContextSingleton<RightPanel> {
 
   private html(): string {
     const styles = UiStyles.inst();
-    
+
     const panelCss = `
       position: absolute;
       top: 0;
@@ -35,20 +41,26 @@ export class RightPanel extends ContextSingleton<RightPanel> {
       display: flex;
       flex-direction: column;
       z-index: 2;
+      transition: right 0.3s ease-in-out;
     `;
 
-    const closeBtnCss = `
+    const toggleBtnCss = `
       position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 30px;
-      height: 30px;
+      bottom: 20px;
+      left: -25px;
+      width: 25px;
+      height: 50px;
       ${styles.getButtonBaseStyle()}
       ${styles.getButtonGradient()}
-      padding: 5px;
-      font-size: 20px;
+      padding: 0;
+      font-size: 16px;
       line-height: 1;
       z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px 0 0 4px;
+      cursor: pointer;
     `;
 
     const tabsCss = `
@@ -76,8 +88,8 @@ export class RightPanel extends ContextSingleton<RightPanel> {
 
     return `
       <div style="${panelCss}">
-        <button class="button_catalog_close" style="${closeBtnCss}">×</button>
-        
+        <button class="button_panel_toggle" style="${toggleBtnCss}">▶</button>
+
         <div class="flex_column_1" nameid="panelPlan">
           <div nameid="wrapTabsR" style="${tabsCss}">
             <div class="right_panel_1_item_block" nameid="button_wrap_level" style="${tabCss}">
@@ -239,11 +251,64 @@ export class RightPanel extends ContextSingleton<RightPanel> {
     });
   }
 
+  private initToggleButton(): void {
+    this.toggleBtn = this.div.querySelector('.button_panel_toggle') as HTMLButtonElement;
+    if (this.toggleBtn) {
+      // Используем capture:true чтобы обработчик срабатывал раньше stopPropagation
+      this.toggleBtn.addEventListener(
+        'click',
+        (e) => {
+          e.stopPropagation(); // Останавливаем всплытие
+          this.toggle();
+        },
+        true,
+      );
+    }
+  }
+
+  /** Скрыть панель */
+  public hide(): void {
+    this.div.style.right = '-350px';
+    UiTopPanel.inst().setRightOffset(0);
+    UiMain.inst().setThreeContainerRightOffset(0);
+    if (this.toggleBtn) {
+      this.toggleBtn.textContent = '◀';
+    }
+  }
+
+  /** Показать панель */
+  public show(): void {
+    this.div.style.right = '0';
+    UiTopPanel.inst().setRightOffset(350);
+    UiMain.inst().setThreeContainerRightOffset(350);
+    if (this.toggleBtn) {
+      this.toggleBtn.textContent = '▶';
+    }
+  }
+
+  /** Переключить видимость панели */
+  public toggle(): void {
+    const currentRight = this.div.style.right;
+    const isVisible = currentRight === '0' || currentRight === '' || currentRight === '0px';
+    if (isVisible) {
+      this.hide();
+    } else {
+      this.show();
+    }
+  }
+
   /** Блокировка событий мыши — они не должны проходить в Three.js */
   private stopEvents(): void {
     const events = ['mousedown', 'wheel', 'mousemove', 'touchstart', 'touchend', 'touchmove'];
     events.forEach((name) => {
-      this.div.addEventListener(name, (e: Event) => e.stopPropagation());
+      this.div.addEventListener(name, (e: Event) => {
+        // Не блокируем события на кнопке toggle (проверяем сам элемент и родителей)
+        const target = e.target as HTMLElement;
+        if (target && target.closest('.button_panel_toggle')) {
+          return;
+        }
+        e.stopPropagation();
+      });
     });
   }
 }

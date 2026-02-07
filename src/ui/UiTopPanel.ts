@@ -15,6 +15,11 @@ export class UiTopPanel extends ContextSingleton<UiTopPanel> {
     this.initHoverEffects();
   }
 
+  /** Установить правый отступ для верхней панели (когда правая панель видна) */
+  public setRightOffset(offset: number): void {
+    this.divMenu.style.width = offset > 0 ? `calc(100% - ${offset}px)` : '100%';
+  }
+
   private initCameraButtons() {
     const div2D = this.divMenu.querySelector('[nameid="butt_camera_2D"]') as HTMLElement;
     const div3D = this.divMenu.querySelector('[nameid="butt_camera_3D"]') as HTMLElement;
@@ -35,23 +40,31 @@ export class UiTopPanel extends ContextSingleton<UiTopPanel> {
       });
     }
 
-    // Инициализируем UiCameraToggle для программного управления
-    UiCameraToggle.inst().setCameraType({ type: '3D' });
-    this.updateCameraButtons('3D');
+    // Инициализация камеры будет выполнена после загрузки Three.js
+    // this.updateCameraButtons('3D');
+  }
+
+  /** Установить начальное состояние кнопок камеры (вызывается после инициализации Three.js) */
+  public initializeCameraState(type: '2D' | '3D' = '3D') {
+    UiCameraToggle.inst().setCameraType({ type });
+    this.updateCameraButtons(type);
   }
 
   private updateCameraButtons(activeType: '2D' | '3D') {
     const div2D = this.divMenu.querySelector('[nameid="butt_camera_2D"]') as HTMLElement;
     const div3D = this.divMenu.querySelector('[nameid="butt_camera_3D"]') as HTMLElement;
-    
+
+    // Если камера в режиме 2D, показываем кнопку 3D (для переключения на 3D)
+    // Если камера в режиме 3D, показываем кнопку 2D (для переключения на 2D)
     if (activeType === '2D') {
-      if (div2D) div2D.style.display = '';
-      if (div3D) div3D.style.display = 'none';
-    } else {
       if (div2D) div2D.style.display = 'none';
       if (div3D) div3D.style.display = '';
+    } else {
+      if (div2D) div2D.style.display = '';
+      if (div3D) div3D.style.display = 'none';
     }
   }
+
 
   private initHoverEffects() {
     const styles = UiStyles.inst();
@@ -88,6 +101,7 @@ export class UiTopPanel extends ContextSingleton<UiTopPanel> {
       display: flex;
       align-items: center;
       z-index: 2;
+      transition: width 0.3s ease-in-out;
     `;
 
     const menuBtnCss = `

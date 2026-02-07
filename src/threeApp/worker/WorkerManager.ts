@@ -27,6 +27,7 @@ export class WorkerManager extends ContextSingleton<WorkerManager> {
       top: rect.top,
       width: rect.width,
       height: rect.height,
+      devicePixelRatio: window.devicePixelRatio,
     });
 
     this.setupPointerForwarding(canvas);

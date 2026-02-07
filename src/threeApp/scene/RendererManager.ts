@@ -9,10 +9,10 @@ import { PerformanceMonitor } from '@/utils/helpers/PerformanceMonitor';
 export class RendererManager extends ContextSingleton<RendererManager> {
   public renderer!: THREE.WebGLRenderer;
 
-  public init({ canvas, rect }: { canvas: HTMLCanvasElement | OffscreenCanvas; rect: DOMRectReadOnly }) {
+  public init({ canvas, rect, pixelRatio }: { canvas: HTMLCanvasElement | OffscreenCanvas; rect: DOMRectReadOnly; pixelRatio?: number }) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, stencil: true });
     this.updateSize({ width: rect.width, height: rect.height });
-    this.renderer.setPixelRatio(typeof window !== 'undefined' ? window.devicePixelRatio : 1);
+    this.renderer.setPixelRatio(pixelRatio ?? (typeof window !== 'undefined' ? window.devicePixelRatio : 1));
   }
 
   public updateSize({ width, height }: { width: number; height: number }) {

@@ -30,7 +30,7 @@ self.onmessage = (event: MessageEvent<MainToWorkerMsg>) => {
   switch (msg.type) {
     case 'init': {
       const rect = new DOMRect(msg.left, msg.top, msg.width, msg.height);
-      SceneManager.inst().init({ canvas: msg.canvas, rect });
+      SceneManager.inst().init({ canvas: msg.canvas, rect, pixelRatio: msg.devicePixelRatio });
       InteractionOrchestrator.inst().init();
       InteractionOrchestrator.inst().registerFeature(new PointFeature());
       PerformanceMonitor.inst().onUpdate = (fps, drawCalls) => sendToMain({ type: 'stats', fps, drawCalls });

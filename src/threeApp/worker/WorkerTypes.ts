@@ -7,6 +7,7 @@ export interface WorkerMsgInit {
   top: number;
   width: number;
   height: number;
+  devicePixelRatio: number;
 }
 
 export interface WorkerMsgResize {

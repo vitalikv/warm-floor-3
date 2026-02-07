@@ -14,7 +14,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
   public scene!: THREE.Scene;
   private domStub: WorkerDomStub | null = null;
 
-  public init({ canvas, rect }: { canvas: HTMLCanvasElement | OffscreenCanvas; rect: DOMRectReadOnly }) {
+  public init({ canvas, rect, pixelRatio }: { canvas: HTMLCanvasElement | OffscreenCanvas; rect: DOMRectReadOnly; pixelRatio?: number }) {
     this.canvas = canvas;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xffffff);
@@ -25,7 +25,7 @@ export class SceneManager extends ContextSingleton<SceneManager> {
       this.domStub = new WorkerDomStub(rect.x, rect.y, rect.width, rect.height);
     }
 
-    RendererManager.inst().init({ canvas, rect });
+    RendererManager.inst().init({ canvas, rect, pixelRatio });
     LightsManager.inst().init();
     CameraManager.inst().init();
     ObjectsManager.inst().init();

@@ -134,4 +134,110 @@ export class WallsManager extends ContextSingleton<WallsManager> {
       }
     }
   }
+
+  /**
+   * Создать стену между двумя точками (для интерактивного создания)
+   */
+  public createWallBetweenPoints(point1: THREE.Mesh, point2: THREE.Mesh): THREE.Mesh | null {
+    const point1Id = point1.userData.pointId;
+    const point2Id = point2.userData.pointId;
+
+    if (point1Id === undefined || point2Id === undefined) {
+      console.error('[WallsManager] Points must have pointId in userData');
+      return null;
+    }
+
+    // Генерируем новый ID для стены
+    const wallId = this.generateWallId();
+
+    // Создаем данные стены
+    const wallData: WallData = {
+      id: wallId,
+      p: {
+        id: [point1Id, point2Id],
+      },
+      size: {
+        y: 2.5, // Высота по умолчанию
+        z: 0.2, // Толщина стены
+      },
+      windows: [],
+      doors: [],
+      material: [
+        {
+          index: 0,
+          color: 0xcccccc,
+          img: '',
+        },
+      ],
+    };
+
+    // Добавляем точки в pointsMap если их там нет
+    if (!this.pointsMap.has(point1Id)) {
+      this.pointsMap.set(point1Id, {
+        id: point1Id,
+        pos: {
+          x: point1.position.x,
+          y: point1.position.y,
+          z: point1.position.z,
+        },
+        type: 'wall',
+      });
+      this.pointMeshesMap.set(point1Id, point1);
+    }
+
+    if (!this.pointsMap.has(point2Id)) {
+      this.pointsMap.set(point2Id, {
+        id: point2Id,
+        pos: {
+          x: point2.position.x,
+          y: point2.position.y,
+          z: point2.position.z,
+        },
+        type: 'wall',
+      });
+      this.pointMeshesMap.set(point2Id, point2);
+    }
+
+    // Добавляем стену в wallsMap
+    this.wallsMap.set(wallId, wallData);
+
+    // Создаем меш стены
+    const wallMesh = this.createWall(wallData);
+    if (wallMesh) {
+      this.scene.add(wallMesh);
+      this.wallMeshesMap.set(wallId, wallMesh);
+      return wallMesh;
+    }
+
+    return null;
+  }
+
+  /**
+   * Добавить объект в сцену (для preview объектов)
+   */
+  public addToScene(object: THREE.Object3D): void {
+    if (this.scene) {
+      this.scene.add(object);
+    }
+  }
+
+  /**
+   * Генерировать новый ID для стены
+   */
+  private generateWallId(): number {
+    const existingIds = Array.from(this.wallsMap.keys());
+    return existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
+  }
+
+  /**
+   * Проверить, имеет ли точка хотя бы одну стену
+   */
+  public hasWalls(pointId: number): boolean {
+    for (const wall of this.wallsMap.values()) {
+      if (wall.p.id.includes(pointId)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

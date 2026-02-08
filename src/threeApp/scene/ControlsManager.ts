@@ -44,6 +44,13 @@ export class ControlsManager extends ContextSingleton<ControlsManager> {
     this.controls.update();
   }
 
+  /**
+   * Включить/выключить controls
+   */
+  public setEnabled(enabled: boolean) {
+    this.controls.enabled = enabled;
+  }
+
   private saveCameraState(camera: THREE.PerspectiveCamera | THREE.OrthographicCamera) {
     camera.userData.state = {
       position: camera.position.clone(),

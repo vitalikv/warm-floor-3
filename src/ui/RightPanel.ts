@@ -2,6 +2,8 @@ import { ContextSingleton } from '@/core/ContextSingleton';
 import { UiStyles } from '@/ui/styles/UiStyles';
 import { UiTopPanel } from '@/ui/UiTopPanel';
 import { UiMain } from '@/ui/UiMain';
+import { ApiUiToThree } from '@/api/apiLocal/ApiUiToThree';
+import * as EventBus from '@/threeApp/interaction/core/EventBus';
 
 /**
  * Правая панель — каталог объектов.
@@ -147,7 +149,7 @@ export class RightPanel extends ContextSingleton<RightPanel> {
             
             <div class="rp_item_plane" style="${itemCss}">
               <div style="display: flex; align-items: center;">
-                <button class="button2 button_gradient_1" style="padding: 5px; margin-right: 10px; font-size: 14px; font-weight: normal; ${styles.getButtonBaseStyle()} ${styles.getButtonGradient()}">стена</button>
+                <button class="button2 button_gradient_1 wall-create-btn" nameid="wall_create_btn" style="padding: 5px; margin-right: 10px; font-size: 14px; font-weight: normal; ${styles.getButtonBaseStyle()} ${styles.getButtonGradient()}">стена</button>
                 <div style="${labelCss}">толщина</div>
                 <input type="text" nameid="rp_wall_width_1" value="0" style="${inputCss}">
               </div>
@@ -197,6 +199,52 @@ export class RightPanel extends ContextSingleton<RightPanel> {
 
     // По умолчанию показываем вкладку "Этажи"
     this.showTab('level');
+
+    // Инициализируем кнопки инструментов
+    this.initToolButtons();
+  }
+
+  private initToolButtons(): void {
+    // Кнопка "Создать стену"
+    this.wallCreateBtn = this.div.querySelector('[nameid="wall_create_btn"]') as HTMLButtonElement;
+    if (this.wallCreateBtn) {
+      this.wallCreateBtn.addEventListener('click', () => this.onWallCreateClick());
+    }
+
+    // Подписаться на события создания стены
+    EventBus.on('wall:creation:cancelled', () => this.onWallCreationCancelled());
+    EventBus.on('wall:creation:completed', () => {
+      // Стена создана, но режим продолжается (continuous mode)
+      // Кнопка остается подсвеченной
+    });
+  }
+
+  private wallCreateBtn: HTMLButtonElement | null = null;
+
+  private onWallCreateClick(): void {
+    console.log('[RightPanel] Wall creation button clicked');
+
+    // Активировать режим создания стены
+    ApiUiToThree.inst().activateWallCreationMode();
+
+    // Подсветить кнопку
+    if (this.wallCreateBtn) {
+      this.wallCreateBtn.style.background = 'rgba(68, 136, 255, 0.3)';
+      this.wallCreateBtn.style.boxShadow = '0 0 10px rgba(68, 136, 255, 0.5)';
+    }
+  }
+
+  /**
+   * Обработчик отмены режима создания стены
+   */
+  private onWallCreationCancelled(): void {
+    console.log('[RightPanel] Wall creation mode cancelled');
+
+    // Убрать подсветку кнопки
+    if (this.wallCreateBtn) {
+      this.wallCreateBtn.style.background = '';
+      this.wallCreateBtn.style.boxShadow = '';
+    }
   }
 
   private showTab(tabName: 'level' | 'plan' | 'object' | 'catalog'): void {

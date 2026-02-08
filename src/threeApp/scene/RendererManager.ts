@@ -27,6 +27,13 @@ export class RendererManager extends ContextSingleton<RendererManager> {
     return this.renderer.domElement;
   }
 
+  /**
+   * Получить canvas (может быть HTMLCanvasElement или OffscreenCanvas)
+   */
+  public getCanvas(): HTMLCanvasElement | OffscreenCanvas {
+    return this.renderer.domElement as HTMLCanvasElement | OffscreenCanvas;
+  }
+
   public render() {
     if (!this.renderer) return;
 

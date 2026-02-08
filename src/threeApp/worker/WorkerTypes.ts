@@ -70,6 +70,14 @@ export interface WorkerMsgMovePoint {
   z: number;
 }
 
+export interface WorkerMsgActivateWallCreationMode {
+  type: 'activateWallCreationMode';
+}
+
+export interface WorkerMsgDeactivateWallCreationMode {
+  type: 'deactivateWallCreationMode';
+}
+
 export type MainToWorkerMsg =
   | WorkerMsgInit
   | WorkerMsgResize
@@ -79,7 +87,9 @@ export type MainToWorkerMsg =
   | WorkerMsgWheel
   | WorkerMsgSwitchCamera
   | WorkerMsgLoadHouse
-  | WorkerMsgMovePoint;
+  | WorkerMsgMovePoint
+  | WorkerMsgActivateWallCreationMode
+  | WorkerMsgDeactivateWallCreationMode;
 
 // ── Worker → Main ──────────────────────────────────────────
 

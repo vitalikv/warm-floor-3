@@ -1,250 +1,236 @@
 # Структура файлов
 
+> **Статус обновления:** 2026-02-08
+> ✅ = Реализовано | 🚧 = В разработке | 📋 = Запланировано
+
+## Текущая структура (реализованная)
+
 ```
 src/
-├── main.ts                            # 🚀 Точка входа приложения
+├── main.ts                            # 🚀 Точка входа приложения ✅
 ├── core/
-│   └── ContextSingleton.ts           # Базовый класс для синглтонов
+│   └── ContextSingleton.ts           # Базовый класс для синглтонов ✅
 │
 ├── threeApp/
-│   ├── ThreeMain.ts                  # 🎯 Главный оркестратор Three.js
+│   ├── ThreeMain.ts                  # 🎯 Главный оркестратор Three.js ✅
 │   │
-│   ├── scene/                         # 🎬 БАЗОВЫЙ ФУНКЦИОНАЛ СЦЕНЫ
-│   │   ├── SceneManager.ts           # Управление THREE.Scene
-│   │   ├── RendererManager.ts        # WebGL рендерер
-│   │   ├── CameraManager.ts          # Двойная камера (2D/3D)
-│   │   ├── ControlsManager.ts        # OrbitControls
-│   │   ├── LightsManager.ts          # Освещение
-│   │   ├── GridHelper.ts             # Сетка и вспомогательные объекты
-│   │   └── EffectsManager.ts         # Постобработка (EffectComposer, outline, lines)
+│   ├── scene/                         # 🎬 БАЗОВЫЙ ФУНКЦИОНАЛ СЦЕНЫ ✅
+│   │   ├── SceneManager.ts           # Управление THREE.Scene ✅
+│   │   ├── RendererManager.ts        # WebGL рендерер ✅
+│   │   ├── CameraManager.ts          # Двойная камера (2D/3D) ✅
+│   │   ├── ControlsManager.ts        # OrbitControls ✅
+│   │   ├── LightsManager.ts          # Освещение ✅
+│   │   ├── ObjectsManager.ts         # Debug объекты (куб, сетка) ✅
+│   │   ├── MouseManager.ts           # Pointer события + raycasting ✅
+│   │   └── EffectsManager.ts         # Постобработка (EffectComposer, outline, lines) ✅
 │   │
 │   ├── house/                         # 🏠 ЛОГИКА ПОСТРОЕНИЯ ДОМА
-│   │   ├── HouseManager.ts           # Главный менеджер дома (оркестратор)
-│   │   ├── HouseLoader.ts            # Загрузка данных дома из JSON + хранение оригинала для сохранения
+│   │   ├── HouseLoader.ts            # Загрузка данных дома из JSON ✅
 │   │   │
-│   │   ├── levels/                    # 🏢 Система этажей
-│   │   │   ├── LevelManager.ts       # Управление этажами
-│   │   │   ├── Level.ts              # Класс этажа
-│   │   │   ├── LevelContext.ts       # Контекст активного этажа
-│   │   │   └── LevelVisibility.ts    # Видимость этажей (ghost/hidden)
+│   │   ├── points/                    # 📍 Точки (вершины стен) ✅
+│   │   │   ├── PointsManager.ts      # Управление точками ✅
+│   │   │   └── PointWall.ts          # Класс точки с визуализацией ✅
 │   │   │
-│   │   ├── points/                    # 📍 Точки (вершины стен)
-│   │   │   ├── PointsManager.ts      # Управление точками
-│   │   │   ├── Point.ts              # Класс точки
-│   │   │   ├── PointMesh.ts          # Визуальное представление
-│   │   │   └── PointFactory.ts       # Создание точек
+│   │   ├── walls/                     # 🧱 Стены ✅
+│   │   │   ├── WallsManager.ts       # Управление стенами ✅
+│   │   │   ├── Wall.ts               # Класс стены ✅
+│   │   │   ├── WallGeometry.ts       # Генерация геометрии стены ✅
+│   │   │   ├── WallMaterial.ts       # Материалы стен ✅
+│   │   │   └── types.ts              # Типы для стен ✅
 │   │   │
-│   │   ├── walls/                     # 🧱 Стены
-│   │   │   ├── WallsManager.ts       # Управление стенами
-│   │   │   ├── Wall.ts               # Класс стены
-│   │   │   ├── WallGeometry.ts       # Генерация геометрии стены
-│   │   │   ├── WallMaterial.ts       # Материалы стен
-│   │   │   └── WallFactory.ts        # Создание стен
+│   │   ├── levels/                    # 🏢 Система этажей 📋
+│   │   │   ├── LevelManager.ts       # Управление этажами 📋
+│   │   │   ├── Level.ts              # Класс этажа 📋
+│   │   │   ├── LevelContext.ts       # Контекст активного этажа 📋
+│   │   │   └── LevelVisibility.ts    # Видимость этажей (ghost/hidden) 📋
 │   │   │
-│   │   ├── rooms/                     # 🚪 Комнаты
-│   │   │   ├── RoomsManager.ts       # Управление комнатами
-│   │   │   ├── Room.ts               # Класс комнаты
-│   │   │   ├── RoomDetector.ts       # Автоопределение комнат по стенам
-│   │   │   └── RoomFloor.ts          # Пол комнаты
+│   │   ├── rooms/                     # 🚪 Комнаты 📋
+│   │   │   ├── RoomsManager.ts       # Управление комнатами 📋
+│   │   │   ├── Room.ts               # Класс комнаты 📋
+│   │   │   ├── RoomDetector.ts       # Автоопределение комнат по стенам 📋
+│   │   │   └── RoomFloor.ts          # Пол комнаты 📋
 │   │   │
-│   │   ├── openings/                  # 🚪🪟 Двери и окна
-│   │   │   ├── OpeningsManager.ts    # Управление проёмами
-│   │   │   ├── Door.ts               # Класс двери
-│   │   │   ├── Window.ts             # Класс окна
-│   │   │   ├── OpeningPlacer.ts      # Размещение на стене
-│   │   │   └── OpeningCutter.ts      # Вырезание проёмов в стене
+│   │   ├── openings/                  # 🚪🪟 Двери и окна 📋
+│   │   │   ├── OpeningsManager.ts    # Управление проёмами 📋
+│   │   │   ├── Door.ts               # Класс двери 📋
+│   │   │   ├── Window.ts             # Класс окна 📋
+│   │   │   ├── OpeningPlacer.ts      # Размещение на стене 📋
+│   │   │   └── OpeningCutter.ts      # Вырезание проёмов в стене 📋
 │   │   │
-│   │   ├── objects/                   # 🪑 Мебель и объекты
-│   │   │   ├── ObjectsManager.ts     # Управление объектами
-│   │   │   ├── FurnitureObject.ts    # Класс мебели
-│   │   │   ├── ObjectCatalog.ts      # Каталог объектов
-│   │   │   └── ObjectPlacer.ts       # Размещение объектов
+│   │   ├── objects/                   # 🪑 Мебель и объекты 📋
+│   │   │   ├── ObjectsManager.ts     # Управление объектами 📋
+│   │   │   ├── FurnitureObject.ts    # Класс мебели 📋
+│   │   │   ├── ObjectCatalog.ts      # Каталог объектов 📋
+│   │   │   └── ObjectPlacer.ts       # Размещение объектов 📋
 │   │   │
-│   │   ├── roofs/                     # 🏠 Крыши
-│   │   │   ├── RoofsManager.ts       # Управление крышами
-│   │   │   ├── Roof.ts               # Класс крыши
-│   │   │   ├── RoofGeometry.ts       # Генерация геометрии
-│   │   │   └── RoofTypes.ts          # Типы крыш (плоская, двускатная, etc.)
+│   │   ├── roofs/                     # 🏠 Крыши 📋
+│   │   │   ├── RoofsManager.ts       # Управление крышами 📋
+│   │   │   ├── Roof.ts               # Класс крыши 📋
+│   │   │   ├── RoofGeometry.ts       # Генерация геометрии 📋
+│   │   │   └── RoofTypes.ts          # Типы крыш (плоская, двускатная, etc.) 📋
 │   │   │
-│   │   ├── stairs/                    # 🪜 Лестницы
-│   │   │   ├── StairsManager.ts      # Управление лестницами
-│   │   │   ├── Stairway.ts           # Класс лестницы
-│   │   │   └── StairTypes.ts         # Типы лестниц
+│   │   ├── stairs/                    # 🪜 Лестницы 📋
+│   │   │   ├── StairsManager.ts      # Управление лестницами 📋
+│   │   │   ├── Stairway.ts           # Класс лестницы 📋
+│   │   │   └── StairTypes.ts         # Типы лестниц 📋
 │   │   │
-│   │   └── floors/                    # 🟫 Перекрытия
-│   │       ├── FloorsManager.ts      # Управление перекрытиями
-│   │       ├── FloorSlab.ts          # Плита перекрытия
-│   │       └── FloorOpening.ts       # Проёмы в перекрытиях
+│   │   └── floors/                    # 🟫 Перекрытия 📋
+│   │       ├── FloorsManager.ts      # Управление перекрытиями 📋
+│   │       ├── FloorSlab.ts          # Плита перекрытия 📋
+│   │       └── FloorOpening.ts       # Проёмы в перекрытиях 📋
 │   │
-│   ├── interaction/                   # 🖱️ СИСТЕМА ВЗАИМОДЕЙСТВИЙ
-│   │   ├── core/
-│   │   │   ├── InteractionOrchestrator.ts  # Главный координатор
-│   │   │   ├── EventBus.ts                 # Event Bus для событий
-│   │   │   ├── InteractionContext.ts       # Глобальное состояние
-│   │   │   └── CursorManager.ts            # Управление курсором
-│   │   │
-│   │   ├── input/                     # 📥 Слой ввода
-│   │   │   ├── MouseInputManager.ts  # Mouse/touch события
-│   │   │   ├── KeyboardInputManager.ts # Клавиатура
-│   │   │   └── GestureDetector.ts    # Жесты
-│   │   │
-│   │   ├── routing/                   # 🚦 Слой маршрутизации
-│   │   │   ├── ClickRouter.ts        # Маршрутизация событий
-│   │   │   ├── RaycastService.ts     # Centralized raycasting
-│   │   │   └── ObjectIdentifier.ts   # Определение типа объекта
-│   │   │
-│   │   ├── modes/                     # 🎨 Режимы работы
-│   │   │   ├── ModeManager.ts        # Управление режимами
-│   │   │   ├── Mode.ts               # Базовый класс режима
-│   │   │   ├── Camera2DMode.ts       # 2D режим
-│   │   │   ├── Camera3DMode.ts       # 3D режим
-│   │   │   ├── ViewOnlyMode.ts       # Только просмотр
-│   │   │   └── MeasureMode.ts        # Режим измерений
-│   │   │
-│   │   ├── policies/                  # 🔒 Правила доступа
-│   │   │   ├── InteractionPolicy.ts  # Базовый класс политик
-│   │   │   ├── Camera2DPolicy.ts     # Правила для 2D
-│   │   │   ├── Camera3DPolicy.ts     # Правила для 3D
-│   │   │   ├── LevelPolicy.ts        # Правила для этажей
-│   │   │   └── PolicyRegistry.ts     # Реестр политик
-│   │   │
-│   │   ├── capabilities/              # 🧩 Возможности объектов (Mixins)
-│   │   │   ├── Capability.ts         # Базовый интерфейс
-│   │   │   ├── Draggable.ts          # Можно перетаскивать
-│   │   │   ├── Selectable.ts         # Можно выделять
-│   │   │   ├── Snappable.ts          # Привязка к сетке
-│   │   │   ├── Resizable.ts          # Изменение размера
-│   │   │   ├── Hoverable.ts          # Подсветка при наведении
-│   │   │   ├── Rotatable.ts          # Можно вращать
-│   │   │   ├── Deletable.ts          # Можно удалить
-│   │   │   ├── LevelBound.ts         # Привязка к этажу
-│   │   │   └── utils.ts              # Утилиты (applyCapabilities, hasCapability)
-│   │   │
-│   │   ├── features/                  # 🎭 Фичи (группы обработчиков)
-│   │   │   ├── Feature.ts            # Базовый класс фичи
-│   │   │   │
-│   │   │   ├── points/
-│   │   │   │   ├── PointFeature.ts
-│   │   │   │   ├── PointDragHandler.ts
-│   │   │   │   └── PointSnapHandler.ts
-│   │   │   │
-│   │   │   ├── walls/
-│   │   │   │   ├── WallFeature.ts
-│   │   │   │   ├── WallDragHandler.ts
-│   │   │   │   ├── WallResizeHandler.ts
-│   │   │   │   └── WallSplitHandler.ts
-│   │   │   │
-│   │   │   ├── rooms/
-│   │   │   │   ├── RoomFeature.ts
-│   │   │   │   └── RoomSelectHandler.ts
-│   │   │   │
-│   │   │   ├── objects/
-│   │   │   │   ├── ObjectFeature.ts
-│   │   │   │   ├── ObjectPlaceHandler.ts
-│   │   │   │   ├── ObjectDragHandler.ts
-│   │   │   │   └── ObjectRotateHandler.ts
-│   │   │   │
-│   │   │   ├── openings/
-│   │   │   │   ├── OpeningFeature.ts
-│   │   │   │   ├── OpeningMoveHandler.ts
-│   │   │   │   └── OpeningResizeHandler.ts
-│   │   │   │
-│   │   │   └── roofs/
-│   │   │       ├── RoofFeature.ts
-│   │   │       └── RoofEditHandler.ts
-│   │   │
-│   │   ├── behaviors/                 # 🔄 Переиспользуемые поведения
-│   │   │   ├── DragBehavior.ts       # Общая логика drag
-│   │   │   ├── SnapBehavior.ts       # Привязка к сетке/точкам
-│   │   │   ├── HoverBehavior.ts      # Подсветка при наведении
-│   │   │   ├── OutlineBehavior.ts    # Обводка выделенных
-│   │   │   └── CollisionBehavior.ts  # Проверка коллизий
-│   │   │
-│   │   ├── tools/                     # 🛠️ Универсальные инструменты
-│   │   │   ├── ToolManager.ts        # Управление инструментами
-│   │   │   ├── SelectionTool.ts      # Выделение (box selection)
-│   │   │   ├── MeasureTool.ts        # Измерения
-│   │   │   ├── TransformTool.ts      # Трансформация (pivot/rotate/scale)
-│   │   │   └── SnapTool.ts           # Привязка
-│   │   │
-│   │   ├── commands/                  # ⏮️ Команды для Undo/Redo
-│   │   │   ├── CommandManager.ts     # История команд
-│   │   │   ├── Command.ts            # Базовый интерфейс
-│   │   │   ├── MoveCommand.ts
-│   │   │   ├── DeleteCommand.ts
-│   │   │   ├── AddCommand.ts
-│   │   │   ├── ResizeCommand.ts
-│   │   │   ├── TransformCommand.ts
-│   │   │   ├── CreateLevelCommand.ts
-│   │   │   ├── DeleteLevelCommand.ts
-│   │   │   └── ChangeLevelCommand.ts
-│   │   │
-│   │   └── blocking/                  # 🚫 Система блокировок
-│   │       ├── BlockingManager.ts
-│   │       └── BlockingRules.ts
+│   ├── model/                         # 📐 СЕТОЧНАЯ МОДЕЛЬ ✅
+│   │   ├── LoaderModel.ts            # Загрузка модели сетки из JSON ✅
+│   │   └── GridProcessor.ts          # Обработка и отрисовка сетки ✅
 │   │
-│   ├── loaders/                       # 📦 Загрузчики ресурсов
-│   │   ├── ModelLoader.ts            # Загрузка 3D моделей
-│   │   ├── TextureLoader.ts          # Загрузка текстур
-│   │   └── MaterialLibrary.ts        # Библиотека материалов
+│   ├── interaction/                   # 🖱️ СИСТЕМА ВЗАИМОДЕЙСТВИЙ (частично) 🚧
+│   │   ├── core/                      # Ядро системы взаимодействий ✅
+│   │   │   ├── InteractionOrchestrator.ts  # Главный координатор ✅
+│   │   │   ├── EventBus.ts                 # Event Bus для событий ✅
+│   │   │   └── InteractionContext.ts       # Глобальное состояние ✅
+│   │   │
+│   │   ├── routing/                   # 🚦 Слой маршрутизации ✅
+│   │   │   ├── ClickRouter.ts        # Маршрутизация событий ✅
+│   │   │   ├── RaycastService.ts     # Centralized raycasting ✅
+│   │   │   └── ObjectIdentifier.ts   # Определение типа объекта ✅
+│   │   │
+│   │   ├── features/                  # 🎭 Фичи (группы обработчиков) 🚧
+│   │   │   ├── points/               # Работа с точками ✅
+│   │   │   │   ├── PointFeature.ts   # Feature для точек ✅
+│   │   │   │   └── PointDragHandler.ts # Перетаскивание точек ✅
+│   │   │   │
+│   │   │   ├── selection/            # Система выделения ✅
+│   │   │   │   └── SelectionManager.ts # Управление выделением ✅
+│   │   │   │
+│   │   │   ├── walls/                # Работа со стенами 📋
+│   │   │   │   ├── WallFeature.ts    # 📋
+│   │   │   │   ├── WallDragHandler.ts # 📋
+│   │   │   │   ├── WallResizeHandler.ts # 📋
+│   │   │   │   └── WallSplitHandler.ts # 📋
+│   │   │   │
+│   │   │   ├── rooms/                # Работа с комнатами 📋
+│   │   │   ├── objects/              # Работа с объектами 📋
+│   │   │   ├── openings/             # Работа с проёмами 📋
+│   │   │   └── roofs/                # Работа с крышами 📋
+│   │   │
+│   │   ├── behaviors/                 # 🔄 Переиспользуемые поведения 🚧
+│   │   │   ├── DragBehavior.ts       # Общая логика drag ✅
+│   │   │   ├── SnapBehavior.ts       # Привязка к сетке/точкам 📋
+│   │   │   ├── HoverBehavior.ts      # Подсветка при наведении 📋
+│   │   │   ├── OutlineBehavior.ts    # Обводка выделенных 📋
+│   │   │   └── CollisionBehavior.ts  # Проверка коллизий 📋
+│   │   │
+│   │   ├── commands/                  # ⏮️ Команды для Undo/Redo ✅
+│   │   │   ├── CommandManager.ts     # История команд ✅
+│   │   │   ├── Command.ts            # Базовый интерфейс ✅
+│   │   │   ├── MovePointCommand.ts   # Команда перемещения точки ✅
+│   │   │   ├── DeleteCommand.ts      # 📋
+│   │   │   ├── AddCommand.ts         # 📋
+│   │   │   ├── ResizeCommand.ts      # 📋
+│   │   │   ├── TransformCommand.ts   # 📋
+│   │   │   ├── CreateLevelCommand.ts # 📋
+│   │   │   ├── DeleteLevelCommand.ts # 📋
+│   │   │   └── ChangeLevelCommand.ts # 📋
+│   │   │
+│   │   ├── input/                     # 📥 Слой ввода 📋
+│   │   ├── modes/                     # 🎨 Режимы работы 📋
+│   │   ├── policies/                  # 🔒 Правила доступа 📋
+│   │   ├── capabilities/              # 🧩 Возможности объектов (Mixins) 📋
+│   │   ├── tools/                     # 🛠️ Универсальные инструменты 📋
+│   │   └── blocking/                  # 🚫 Система блокировок 📋
 │   │
-│   └── worker/                       # 🧵 РЕНДЕР В ВОРКЕРЕ
-│       ├── WorkerManager.ts          # Сторона main-thread: спавн воркера, bridge событий
-│       ├── RenderWorker.ts           # Сторона Worker: Three.js сцена + обработка сообщений
-│       ├── WorkerTypes.ts            # Union-тип сообщений main ↔ worker
-│       └── WorkerDomStub.ts          # DOM-стаб для OrbitControls в Worker
+│   ├── loaders/                       # 📦 Загрузчики ресурсов 📋
+│   │   ├── ModelLoader.ts            # Загрузка 3D моделей 📋
+│   │   ├── TextureLoader.ts          # Загрузка текстур 📋
+│   │   └── MaterialLibrary.ts        # Библиотека материалов 📋
+│   │
+│   └── worker/                       # 🧵 РЕНДЕР В ВОРКЕРЕ ✅
+│       ├── WorkerManager.ts          # Сторона main-thread: спавн воркера, bridge событий ✅
+│       ├── RenderWorker.ts           # Сторона Worker: Three.js сцена + обработка сообщений ✅
+│       ├── WorkerTypes.ts            # Union-тип сообщений main ↔ worker ✅
+│       └── WorkerDomStub.ts          # DOM-стаб для OrbitControls в Worker ✅
 │
-├── ui/                                # 🖼️ UI КОМПОНЕНТЫ
-│   ├── UiMain.ts                     # Главный UI оркестратор
+├── ui/                                # 🖼️ UI КОМПОНЕНТЫ 🚧
+│   ├── UiMain.ts                     # Главный UI оркестратор ✅
+│   ├── UiTopPanel.ts                 # Верхняя панель (кнопка Сохранить) ✅
+│   ├── UiCameraToggle.ts             # Переключатель 2D/3D ✅
+│   ├── UiStatsPanel.ts               # Оверлей FPS + draw calls ✅
+│   ├── RightPanel.ts                 # Правая панель (свойства) ✅
 │   │
-│   ├── panels/
-│   │   ├── TopPanel.ts               # Верхняя панель (кнопка Сохранить → скачивание JSON)
-│   │   ├── LeftPanel.ts              # Левая панель (каталог)
-│   │   ├── RightPanel.ts             # Правая панель (свойства)
-│   │   ├── LevelPanel.ts             # Панель этажей
-│   │   └── PropertiesPanel.ts        # Панель свойств объекта
+│   ├── styles/                       # Стили UI ✅
+│   │   └── UiStyles.ts               # CSS-in-JS стили ✅
 │   │
-│   ├── toolbar/
-│   │   ├── Toolbar.ts                # Панель инструментов
-│   │   └── ToolButton.ts             # Кнопка инструмента
+│   ├── panels/                       # Панели 📋
+│   │   ├── LeftPanel.ts              # Левая панель (каталог) 📋
+│   │   ├── LevelPanel.ts             # Панель этажей 📋
+│   │   └── PropertiesPanel.ts        # Панель свойств объекта 📋
 │   │
-│   ├── controls/
-│   │   ├── CameraToggle.ts           # Переключатель 2D/3D
-│   │   ├── UndoRedoButtons.ts        # Кнопки отмены/повтора
-│   │   ├── ZoomControls.ts           # Управление зумом
-│   │   └── StatsPanel.ts             # Оверлей FPS + draw calls
-│   │
-│   └── dialogs/
-│       ├── ConfirmDialog.ts          # Диалог подтверждения
-│       └── SettingsDialog.ts         # Диалог настроек
+│   ├── toolbar/                      # Панель инструментов 📋
+│   ├── controls/                     # Дополнительные контролы 📋
+│   └── dialogs/                      # Диалоги 📋
 │
-├── api/                               # 🔗 API СЛОЙ
+├── api/                               # 🔗 API СЛОЙ 🚧
+│   ├── apiLocal/                      # 📨 Команды между UI и Three.js ✅
+│   │   ├── ApiUiToThree.ts            # UI → Three.js (добавить стену, сместить точку, сменить режим) ✅
+│   │   ├── ApiThreeToUi.ts            # Three.js → UI (обновление свойств, события выделения) ✅
+│   │   └── ApiLocalTypes.ts           # Типы событий и команд между слоями ✅
 │   │
-│   ├── apiGlobal/                     # 🌐 Взаимодействие с внешней БД
-│   │   ├── ApiGlobalLoader.ts         # Загрузка данных дома из внешней БД (GET)
-│   │   ├── ApiGlobalSaver.ts          # Сохранение состояния дома в внешнюю БД (POST/PUT)
-│   │   └── ApiGlobalTypes.ts          # Типы запросов/ответов для внешней БД
-│   │
-│   └── apiLocal/                      # 📨 Команды между UI и Three.js
-│       ├── ApiUiToThree.ts            # UI → Three.js (добавить стену, сместить точку, сменить режим)
-│       ├── ApiThreeToUi.ts            # Three.js → UI (обновление свойств, события выделения)
-│       └── ApiLocalTypes.ts           # Типы событий и команд между слоями
+│   └── apiGlobal/                     # 🌐 Взаимодействие с внешней БД 📋
+│       ├── ApiGlobalLoader.ts         # Загрузка данных дома из внешней БД (GET) 📋
+│       ├── ApiGlobalSaver.ts          # Сохранение состояния дома в внешнюю БД (POST/PUT) 📋
+│       └── ApiGlobalTypes.ts          # Типы запросов/ответов для внешней БД 📋
 │
-└── utils/                             # 🔧 УТИЛИТЫ
-    ├── math/
-    │   ├── GeometryUtils.ts          # Геометрические вычисления
-    │   ├── VectorUtils.ts            # Работа с векторами
-    │   └── PolygonUtils.ts           # Работа с полигонами
+└── utils/                             # 🔧 УТИЛИТЫ 🚧
+    ├── helpers/                       # Вспомогательные инструменты ✅
+    │   └── PerformanceMonitor.ts     # Мониторинг производительности ✅
     │
-    ├── helpers/
-    │   ├── DebugHelper.ts            # Отладочные инструменты
-    │   └── PerformanceMonitor.ts     # Мониторинг производительности
+    ├── math/                          # Математические утилиты 📋
+    │   ├── GeometryUtils.ts          # Геометрические вычисления 📋
+    │   ├── VectorUtils.ts            # Работа с векторами 📋
+    │   └── PolygonUtils.ts           # Работа с полигонами 📋
     │
-    └── types/
-        ├── HouseTypes.ts             # Типы для дома
-        ├── InteractionTypes.ts       # Типы для взаимодействий
-        └── EventTypes.ts             # Типы событий
+    └── types/                         # Общие типы 📋
+        ├── HouseTypes.ts             # Типы для дома 📋
+        ├── InteractionTypes.ts       # Типы для взаимодействий 📋
+        └── EventTypes.ts             # Типы событий 📋
 ```
+
+---
+
+## Текущее состояние реализации
+
+### ✅ Полностью реализованные модули
+
+1. **Core** - `ContextSingleton` паттерн для всех менеджеров
+2. **Scene** - полная базовая функциональность Three.js сцены (8 менеджеров)
+3. **House (частично)** - точки и стены полностью работают
+4. **Model** - система сеточной модели (не было в изначальном плане)
+5. **Worker** - рендер в воркере полностью реализован (4 файла)
+6. **Interaction (частично)** - базовая архитектура + drag точек + выделение
+7. **API Local** - коммуникация UI ↔ Three.js
+8. **UI (частично)** - основные панели и контролы
+
+### 🚧 Частично реализованные модули
+
+- **House** - только точки и стены; нет этажей, комнат, проёмов, объектов, крыш, лестниц
+- **Interaction** - есть core/routing/features(points+selection)/behaviors(drag)/commands, но нет input/modes/policies/capabilities/tools/blocking
+- **UI** - базовые компоненты есть, нет toolbar/dialogs/полной панели этажей
+- **Utils** - только PerformanceMonitor, нет math утилит
+
+### 📋 Запланированные модули (не реализованы)
+
+- **House**: levels/, rooms/, openings/, objects/, roofs/, stairs/, floors/
+- **Interaction**: input/, modes/, policies/, capabilities/, большинство features, большинство behaviors, tools/, blocking/
+- **Loaders**: загрузчики 3D моделей и текстур
+- **API Global**: взаимодействие с внешней БД
+- **Utils**: математические утилиты, типы
+
+### 📐 Добавлено (не было в плане)
+
+- **threeApp/model/** - LoaderModel и GridProcessor для сеточной визуализации
+- **threeApp/scene/MouseManager** - централизованная обработка pointer событий
+- **threeApp/interaction/features/selection/** - SelectionManager для управления выделением
+- **ui/styles/** - CSS-in-JS стили
 
 ---
 
@@ -357,3 +343,25 @@ canvas (DOM)
 | `vite.worker.config.ts` | `src/threeApp/worker/RenderWorker.ts` | `dist/worker.js` (отдельный бандл) |
 
 `WorkerManager` загружает воркер через `new Worker(url, { type: 'module' })`. В dev-режиме URL = `import.meta.url`-относительный путь к `.ts` файлу (Vite обрабатывает), в prod — замена `index.js` → `worker.js` в том же каталоге.
+
+---
+
+## Примечания
+
+### История документа
+- **Изначальный план** (до реализации) - описывал полную архитектуру с этажами, комнатами, проёмами, объектами и т.д.
+- **Текущая версия** (обновлено 2026-02-08) - отражает реальное состояние кодовой базы
+
+### Дополнительная документация
+- [CLAUDE.md](../CLAUDE.md) - руководство для работы с проектом, описание инициализации и ключевых компонентов
+- [INTERACTION_ARCHITECTURE.md](../INTERACTION_ARCHITECTURE.md) - детальный план будущей системы взаимодействий (не полностью реализован)
+- [COMMANDS.md](../COMMANDS.md) - ранняя итерация плана структуры файлов для команд
+
+### Следующие шаги
+Следующие модули по приоритету реализации:
+1. **Levels** - система этажей (необходима для масштабирования)
+2. **Rooms** - автоопределение комнат и работа с полами
+3. **Openings** - двери и окна с вырезанием проёмов
+4. **Objects** - каталог мебели и размещение объектов
+5. Расширение **Interaction** - modes, policies, capabilities для полной гибкости
+6. **API Global** - интеграция с внешней БД для сохранения/загрузки проектов

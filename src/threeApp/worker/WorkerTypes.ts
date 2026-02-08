@@ -70,6 +70,12 @@ export interface WorkerMsgMovePoint {
   z: number;
 }
 
+export interface WorkerMsgKeyDown {
+  type: 'keydown';
+  key: string;
+  code: string;
+}
+
 export interface WorkerMsgActivateWallCreationMode {
   type: 'activateWallCreationMode';
 }
@@ -88,6 +94,7 @@ export type MainToWorkerMsg =
   | WorkerMsgSwitchCamera
   | WorkerMsgLoadHouse
   | WorkerMsgMovePoint
+  | WorkerMsgKeyDown
   | WorkerMsgActivateWallCreationMode
   | WorkerMsgDeactivateWallCreationMode;
 
@@ -113,10 +120,16 @@ export interface WorkerMsgStats {
   type: 'stats';
   fps: number;
   drawCalls: number;
+  geometries: number;
+}
+
+export interface WorkerMsgWallCreationCancelled {
+  type: 'wallCreationCancelled';
 }
 
 export type WorkerToMainMsg =
   | WorkerMsgReady
   | WorkerMsgObjectSelected
   | WorkerMsgHouseLoaded
-  | WorkerMsgStats;
+  | WorkerMsgStats
+  | WorkerMsgWallCreationCancelled;

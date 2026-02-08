@@ -14,6 +14,7 @@ import { UiStyles } from '@/ui/styles/UiStyles';
 export class UiStatsPanel extends ContextSingleton<UiStatsPanel> {
   private fpsEl!:       HTMLSpanElement;
   private drawCallsEl!: HTMLSpanElement;
+  private geometriesEl!: HTMLSpanElement;
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
   public init(container: HTMLElement): void {
@@ -22,6 +23,7 @@ export class UiStatsPanel extends ContextSingleton<UiStatsPanel> {
 
     this.fpsEl       = div.querySelector('#stats-fps') as HTMLSpanElement;
     this.drawCallsEl = div.querySelector('#stats-dc')  as HTMLSpanElement;
+    this.geometriesEl = div.querySelector('#stats-geo') as HTMLSpanElement;
 
     this.intervalId = setInterval(() => this.update(), 500);
   }
@@ -59,6 +61,7 @@ export class UiStatsPanel extends ContextSingleton<UiStatsPanel> {
       <div style="${panelCss}">
         <div>FPS:  <span id="stats-fps" style="${valueCss}">0</span></div>
         <div>Draw: <span id="stats-dc" style="${valueCss}">0</span></div>
+        <div>Geo:  <span id="stats-geo" style="${valueCss}">0</span></div>
       </div>
     `;
   }
@@ -66,6 +69,7 @@ export class UiStatsPanel extends ContextSingleton<UiStatsPanel> {
   private update(): void {
     this.fpsEl.textContent       = String(Math.round(PerformanceMonitor.inst().getFps()));
     this.drawCallsEl.textContent = String(PerformanceMonitor.inst().getDrawCalls());
+    this.geometriesEl.textContent = String(PerformanceMonitor.inst().getGeometries());
   }
 
   public dispose(): void {

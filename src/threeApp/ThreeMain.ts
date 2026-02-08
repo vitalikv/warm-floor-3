@@ -8,7 +8,7 @@ import { InteractionOrchestrator } from '@/threeApp/interaction/core/Interaction
 import { PointFeature } from '@/threeApp/interaction/features/points/PointFeature';
 
 export class ThreeMain extends ContextSingleton<ThreeMain> {
-  private useWorker = false;
+  private useWorker = true;
   private canvas: HTMLCanvasElement | null = null;
 
   public setUseWorker(flag: boolean) {

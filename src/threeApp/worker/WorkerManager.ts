@@ -1,6 +1,7 @@
 import { ContextSingleton } from '@/core/ContextSingleton';
 import { ApiThreeToUi } from '@/api/apiLocal/ApiThreeToUi';
 import { PerformanceMonitor } from '@/utils/helpers/PerformanceMonitor';
+import * as EventBus from '@/threeApp/interaction/core/EventBus';
 import type { MainToWorkerMsg, WorkerToMainMsg } from './WorkerTypes';
 
 /**
@@ -38,6 +39,7 @@ export class WorkerManager extends ContextSingleton<WorkerManager> {
     canvas.addEventListener('pointermove', (e) => this.send({ type: 'pointermove', clientX: e.clientX, clientY: e.clientY, button: e.button, buttons: e.buttons, pointerId: e.pointerId }));
     canvas.addEventListener('pointerup',   (e) => this.send({ type: 'pointerup',   clientX: e.clientX, clientY: e.clientY, button: e.button, buttons: e.buttons, pointerId: e.pointerId }));
     canvas.addEventListener('wheel', (e) => { e.preventDefault(); this.send({ type: 'wheel', deltaY: e.deltaY, clientX: e.clientX, clientY: e.clientY }); }, { passive: false });
+    window.addEventListener('keydown', (e) => this.send({ type: 'keydown', key: e.key, code: e.code }));
   }
 
   public send(msg: MainToWorkerMsg): void {
@@ -61,7 +63,10 @@ export class WorkerManager extends ContextSingleton<WorkerManager> {
         // уведомление UI через ApiThreeToUi (Stage 3)
         break;
       case 'stats':
-        PerformanceMonitor.inst().pushStats(msg.fps, msg.drawCalls);
+        PerformanceMonitor.inst().pushStats(msg.fps, msg.drawCalls, msg.geometries);
+        break;
+      case 'wallCreationCancelled':
+        EventBus.emit('wall:creation:cancelled', {});
         break;
     }
   }

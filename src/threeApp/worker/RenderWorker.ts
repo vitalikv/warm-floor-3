@@ -8,6 +8,8 @@ import { HouseLoader } from '@/threeApp/house/HouseLoader';
 import { LoaderModel } from '@/threeApp/model/LoaderModel';
 import { InteractionOrchestrator } from '@/threeApp/interaction/core/InteractionOrchestrator';
 import { PointFeature } from '@/threeApp/interaction/features/points/PointFeature';
+import { WallCreationMode } from '@/threeApp/interaction/modes/WallCreationMode';
+import * as EventBus from '@/threeApp/interaction/core/EventBus';
 import { PerformanceMonitor } from '@/utils/helpers/PerformanceMonitor';
 import type { MainToWorkerMsg, WorkerToMainMsg } from './WorkerTypes';
 
@@ -24,6 +26,9 @@ function sendToMain(msg: WorkerToMainMsg): void {
   self.postMessage(msg);
 }
 
+// Проксирование EventBus событий из воркера в main thread
+EventBus.on('wall:creation:cancelled', () => sendToMain({ type: 'wallCreationCancelled' }));
+
 self.onmessage = (event: MessageEvent<MainToWorkerMsg>) => {
   const msg = event.data;
 
@@ -33,7 +38,7 @@ self.onmessage = (event: MessageEvent<MainToWorkerMsg>) => {
       SceneManager.inst().init({ canvas: msg.canvas, rect, pixelRatio: msg.devicePixelRatio });
       InteractionOrchestrator.inst().init();
       InteractionOrchestrator.inst().registerFeature(new PointFeature());
-      PerformanceMonitor.inst().onUpdate = (fps, drawCalls) => sendToMain({ type: 'stats', fps, drawCalls });
+      PerformanceMonitor.inst().onUpdate = (fps, drawCalls, geometries) => sendToMain({ type: 'stats', fps, drawCalls, geometries });
       sendToMain({ type: 'ready' });
       break;
     }
@@ -60,5 +65,24 @@ self.onmessage = (event: MessageEvent<MainToWorkerMsg>) => {
       WallsManager.inst().updatePointPosition(msg.pointId, new THREE.Vector3(msg.x, msg.y, msg.z));
       RendererManager.inst().render();
       break;
+    case 'activateWallCreationMode':
+      WallCreationMode.inst().activate();
+      break;
+    case 'deactivateWallCreationMode':
+      WallCreationMode.inst().deactivate();
+      break;
+    case 'keydown': {
+      // Диспатчим keydown через DomStub.ownerDocument (там слушают OrbitControls и WallCreationMode)
+      const domStub = SceneManager.inst().getDomStub();
+      if (domStub) {
+        const e = new Event('keydown', { bubbles: true });
+        Object.defineProperties(e, {
+          key:  { value: msg.key },
+          code: { value: msg.code },
+        });
+        domStub.ownerDocument.dispatchEvent(e);
+      }
+      break;
+    }
   }
 };

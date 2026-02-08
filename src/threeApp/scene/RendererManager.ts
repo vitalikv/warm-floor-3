@@ -48,6 +48,6 @@ export class RendererManager extends ContextSingleton<RendererManager> {
       drawCalls = this.renderer.info.render.calls;
     }
 
-    PerformanceMonitor.inst().onFrameRendered(drawCalls);
+    PerformanceMonitor.inst().onFrameRendered(drawCalls, this.renderer.info.memory.geometries);
   }
 }

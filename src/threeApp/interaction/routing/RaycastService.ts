@@ -8,8 +8,19 @@ export class RaycastService extends ContextSingleton<RaycastService> {
   private raycaster = new THREE.Raycaster();
   private floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Плоскость пола (Y=0)
 
+  /**
+   * Получить rect (поддержка main thread и worker через DomStub)
+   */
+  private getRect(): DOMRect {
+    const domStub = SceneManager.inst().getDomStub();
+    if (domStub) {
+      return domStub.getBoundingClientRect();
+    }
+    return RendererManager.inst().getDomElement().getBoundingClientRect();
+  }
+
   public intersect(clientX: number, clientY: number): THREE.Intersection[] {
-    const rect = RendererManager.inst().getDomElement().getBoundingClientRect();
+    const rect = this.getRect();
     const mouse = new THREE.Vector2(
       ((clientX - rect.left) / rect.width) * 2 - 1,
       -((clientY - rect.top) / rect.height) * 2 + 1
@@ -23,7 +34,7 @@ export class RaycastService extends ContextSingleton<RaycastService> {
    * Возвращает позицию пересечения с плоскостью пола
    */
   public raycastFloor(event: PointerEvent | MouseEvent): THREE.Vector3 | null {
-    const rect = RendererManager.inst().getDomElement().getBoundingClientRect();
+    const rect = this.getRect();
     const mouse = new THREE.Vector2(
       ((event.clientX - rect.left) / rect.width) * 2 - 1,
       -((event.clientY - rect.top) / rect.height) * 2 + 1

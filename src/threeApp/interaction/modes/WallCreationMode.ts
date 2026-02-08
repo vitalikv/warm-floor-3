@@ -5,6 +5,7 @@ import { PointsManager } from '@/threeApp/house/points/PointsManager';
 import { WallsManager } from '@/threeApp/house/walls/WallsManager';
 import { RendererManager } from '@/threeApp/scene/RendererManager';
 import { ControlsManager } from '@/threeApp/scene/ControlsManager';
+import { SceneManager } from '@/threeApp/scene/SceneManager';
 import * as EventBus from '@/threeApp/interaction/core/EventBus';
 import { PointWall } from '@/threeApp/house/points/PointWall';
 import { WallGeometry } from '@/threeApp/house/walls/WallGeometry';
@@ -25,6 +26,7 @@ export class WallCreationMode extends ContextSingleton<WallCreationMode> {
   private cursorPoint: PointWall | null = null; // Точка, привязанная к курсору
   private lastFixedPoint: PointWall | null = null; // Последняя зафиксированная точка
   private previewWall: THREE.Mesh | null = null; // Preview стены
+  private fixedPoints: PointWall[] = []; // Все зафиксированные точки в этой сессии
 
   // Настройки
   private readonly minWallLength = 0.5;
@@ -142,11 +144,12 @@ export class WallCreationMode extends ContextSingleton<WallCreationMode> {
   /**
    * Обработка нажатия клавиш
    */
-  private handleKeyDown = (event: KeyboardEvent): void => {
+  private handleKeyDown = (event: Event): void => {
     if (!this.isActive) return;
 
-    // ESC - отмена
-    if (event.key === 'Escape') {
+    // ESC - отмена (поддержка и KeyboardEvent, и синтетического Event в worker)
+    const key = (event as KeyboardEvent).key;
+    if (key === 'Escape') {
       this.deactivate();
     }
   };
@@ -196,6 +199,7 @@ export class WallCreationMode extends ContextSingleton<WallCreationMode> {
     }
 
     // Сохранить эту точку как lastFixedPoint
+    this.fixedPoints.push(this.cursorPoint);
     this.lastFixedPoint = this.cursorPoint;
 
     // Создать новую точку для курсора
@@ -398,43 +402,63 @@ export class WallCreationMode extends ContextSingleton<WallCreationMode> {
       this.cursorPoint = null;
     }
 
-    // Удалить lastFixedPoint если у неё нет стен (точка-сирота)
-    if (this.lastFixedPoint) {
-      const pointId = this.lastFixedPoint.userData.pointId as number;
+    // Удалить все зафиксированные точки-сироты (без стен)
+    for (const point of this.fixedPoints) {
+      const pointId = point.userData.pointId as number;
       if (!WallsManager.inst().hasWalls(pointId)) {
-        PointsManager.inst().deletePoint(this.lastFixedPoint);
+        PointsManager.inst().deletePoint(point);
       }
-      this.lastFixedPoint = null;
     }
+    this.fixedPoints = [];
+    this.lastFixedPoint = null;
 
     RendererManager.inst().render();
   }
 
   /**
-   * Подписаться на события
+   * Подписаться на события.
+   * Main thread: подписка на canvas + window.
+   * Worker: подписка на DomStub (pointerdown) + DomStub.ownerDocument (pointermove, keydown).
    */
   private subscribeToEvents(): void {
-    const canvas = RendererManager.inst().getCanvas();
-    if (canvas) {
-      canvas.addEventListener('pointerdown', this.handlePointerDown);
-      canvas.addEventListener('pointermove', this.handlePointerMove);
-      // Блокируем контекстное меню по правой кнопке
-      canvas.addEventListener('contextmenu', this.handleContextMenu);
+    const domStub = SceneManager.inst().getDomStub();
+
+    if (domStub) {
+      // Worker: DomStub для pointerdown, ownerDocument для pointermove и keydown
+      domStub.addEventListener('pointerdown', this.handlePointerDown);
+      domStub.ownerDocument.addEventListener('pointermove', this.handlePointerMove);
+      domStub.ownerDocument.addEventListener('keydown', this.handleKeyDown as EventListener);
+    } else {
+      // Main thread: подписка на canvas + window
+      const canvas = RendererManager.inst().getCanvas();
+      if (canvas) {
+        canvas.addEventListener('pointerdown', this.handlePointerDown);
+        canvas.addEventListener('pointermove', this.handlePointerMove);
+        canvas.addEventListener('contextmenu', this.handleContextMenu);
+      }
+      window.addEventListener('keydown', this.handleKeyDown);
     }
-    window.addEventListener('keydown', this.handleKeyDown);
   }
 
   /**
    * Отписаться от событий
    */
   private unsubscribeFromEvents(): void {
-    const canvas = RendererManager.inst().getCanvas();
-    if (canvas) {
-      canvas.removeEventListener('pointerdown', this.handlePointerDown);
-      canvas.removeEventListener('pointermove', this.handlePointerMove);
-      canvas.removeEventListener('contextmenu', this.handleContextMenu);
+    const domStub = SceneManager.inst().getDomStub();
+
+    if (domStub) {
+      domStub.removeEventListener('pointerdown', this.handlePointerDown);
+      domStub.removeEventListener('pointermove', this.handlePointerMove);
+      domStub.ownerDocument.removeEventListener('keydown', this.handleKeyDown as EventListener);
+    } else {
+      const canvas = RendererManager.inst().getCanvas();
+      if (canvas) {
+        canvas.removeEventListener('pointerdown', this.handlePointerDown);
+        canvas.removeEventListener('pointermove', this.handlePointerMove);
+        canvas.removeEventListener('contextmenu', this.handleContextMenu);
+      }
+      window.removeEventListener('keydown', this.handleKeyDown);
     }
-    window.removeEventListener('keydown', this.handleKeyDown);
   }
 
   /**
